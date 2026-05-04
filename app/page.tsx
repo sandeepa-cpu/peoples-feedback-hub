@@ -4,7 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquare, Send, Star, User } from "lucide-react";
 
-import { FEEDBACK_SCRIPT_POST_URL } from "./lib/feedback-script";
+import { FEEDBACK_SCRIPT_POST_URL, ratingEmojiForStars } from "./lib/feedback-script";
 import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 
 async function launchFullScreenConfetti() {
@@ -86,13 +86,15 @@ const labelClass =
   "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-stone-600";
 
 function InteractiveRatingFace({ rating }: { rating: number | null }) {
-  const { emoji, mood } = useMemo(() => {
-    if (rating === null) return { emoji: "✨", mood: "idle" as const };
-    if (rating <= 1) return { emoji: "😠", mood: "low" as const };
-    if (rating === 2) return { emoji: "🙁", mood: "low" as const };
-    if (rating === 3) return { emoji: "😐", mood: "mid" as const };
-    if (rating === 4) return { emoji: "🙂", mood: "bounce" as const };
-    return { emoji: "😍", mood: "heart" as const };
+  const emoji = rating === null ? "✨" : ratingEmojiForStars(rating);
+
+  const mood = useMemo(() => {
+    if (rating === null) return "idle" as const;
+    if (rating <= 1) return "low" as const;
+    if (rating === 2) return "low" as const;
+    if (rating === 3) return "mid" as const;
+    if (rating === 4) return "bounce" as const;
+    return "heart" as const;
   }, [rating]);
 
   const motionByMood = {
@@ -173,16 +175,23 @@ export default function HomePage() {
     } else setShowRatingHint(false);
     if (!ok) return;
 
+    const stars = rating;
+    if (stars === null) return;
+
     setSubmitError(null);
     setIsSubmitting(true);
 
     const text = message.trim();
+    const timestamp = new Date().toISOString();
     const body = new URLSearchParams({
       name: name.trim(),
-      rating: String(rating),
+      rating: String(stars),
+      ratingEmoji: ratingEmojiForStars(stars),
       message: text,
-      /** Same text as `message` — many Apps Script sheets use `feedback` */
       feedback: text,
+      comments: text,
+      timestamp,
+      submittedAt: timestamp,
     });
 
     try {
