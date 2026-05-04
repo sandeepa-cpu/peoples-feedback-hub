@@ -1,6 +1,6 @@
 {
   "/_not-found/page": "/_not-found",
   "/feedback/page": "/feedback",
-  "/qr-display/page": "/qr-display",
-  "/page": "/"
+  "/page": "/",
+  "/qr-display/page": "/qr-display"
 }

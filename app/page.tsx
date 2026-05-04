@@ -186,12 +186,9 @@ export default function HomePage() {
     const body = new URLSearchParams({
       name: name.trim(),
       rating: String(stars),
-      ratingEmoji: ratingEmojiForStars(stars),
       message: text,
-      feedback: text,
-      comments: text,
       timestamp,
-      submittedAt: timestamp,
+      ratingEmoji: ratingEmojiForStars(stars),
     });
 
     try {

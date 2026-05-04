@@ -26,7 +26,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/qr-display": {
+    "/feedback": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -39,8 +39,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/qr-display",
-      "dataRoute": "/qr-display.rsc",
+      "srcRoute": "/feedback",
+      "dataRoute": "/feedback.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -74,7 +74,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/feedback": {
+    "/qr-display": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -87,8 +87,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/feedback",
-      "dataRoute": "/feedback.rsc",
+      "srcRoute": "/qr-display",
+      "dataRoute": "/qr-display.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
