@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquare, Send, Star, User } from "lucide-react";
 
+import { FEEDBACK_SCRIPT_POST_URL } from "./lib/feedback-script";
 import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 
 async function launchFullScreenConfetti() {
@@ -156,8 +157,10 @@ export default function HomePage() {
   const [submitted, setSubmitted] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
   const [showNameHint, setShowNameHint] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     let ok = true;
     if (!name.trim()) {
@@ -169,6 +172,37 @@ export default function HomePage() {
       ok = false;
     } else setShowRatingHint(false);
     if (!ok) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    const body = new URLSearchParams({
+      name: name.trim(),
+      rating: String(rating),
+      message: message.trim(),
+    });
+
+    try {
+      const res = await fetch(FEEDBACK_SCRIPT_POST_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: body.toString(),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch {
+      setSubmitError(
+        "We could not send your feedback just now. Please try again or message us on WhatsApp.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(false);
     void launchFullScreenConfetti();
     setSubmitted(true);
   }
@@ -180,6 +214,8 @@ export default function HomePage() {
     setSubmitted(false);
     setShowRatingHint(false);
     setShowNameHint(false);
+    setSubmitError(null);
+    setIsSubmitting(false);
   }
 
   return (
@@ -315,10 +351,12 @@ export default function HomePage() {
                       <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
                         <button
                           type="submit"
-                          className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-amber-900 via-amber-800 to-orange-800 px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(120,53,15,0.5),inset_0_1px_0_rgba(255,255,255,0.18)] transition hover:brightness-[1.06] active:scale-[0.99] active:brightness-[0.97]"
+                          disabled={isSubmitting}
+                          aria-busy={isSubmitting}
+                          className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-amber-900 via-amber-800 to-orange-800 px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(120,53,15,0.5),inset_0_1px_0_rgba(255,255,255,0.18)] transition hover:brightness-[1.06] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
                         >
                           <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
-                          ප්‍රතිචාරය එවන්න · Submit
+                          {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
                         </button>
                         <a
                           href={WHATSAPP_CHAT_URL}
@@ -340,6 +378,11 @@ export default function HomePage() {
                           </span>
                         </a>
                       </div>
+                      {submitError ? (
+                        <p className="px-1 text-center text-xs font-medium text-red-600" role="alert">
+                          {submitError}
+                        </p>
+                      ) : null}
                       <p className="px-1 text-center text-[0.65rem] leading-relaxed text-stone-500">
                         WhatsApp opens to {WHATSAPP_PHONE_DISPLAY} with a pre-filled feedback note.
                       </p>
