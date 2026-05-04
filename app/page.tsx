@@ -176,10 +176,13 @@ export default function HomePage() {
     setSubmitError(null);
     setIsSubmitting(true);
 
+    const text = message.trim();
     const body = new URLSearchParams({
       name: name.trim(),
       rating: String(rating),
-      message: message.trim(),
+      message: text,
+      /** Same text as `message` — many Apps Script sheets use `feedback` */
+      feedback: text,
     });
 
     try {
