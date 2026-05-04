@@ -195,17 +195,21 @@ export default function HomePage() {
     });
 
     try {
-      const res = await fetch(FEEDBACK_SCRIPT_POST_URL, {
+      /*
+       * Google Apps Script Web Apps often omit CORS headers on POST responses.
+       * `cors` mode then fails visibility checks or yields non-ok status after redirects.
+       * `no-cors` sends a "simple" POST; the response is opaque (status not readable),
+       * but doPost still runs and the Sheet receives e.parameter fields.
+       */
+      await fetch(FEEDBACK_SCRIPT_POST_URL, {
         method: "POST",
+        mode: "no-cors",
+        redirect: "follow",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: body.toString(),
       });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
     } catch {
       setSubmitError(
         "We could not send your feedback just now. Please try again or message us on WhatsApp.",
