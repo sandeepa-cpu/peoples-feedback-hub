@@ -2,9 +2,10 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageSquare, Send, Star, User } from "lucide-react";
+import { MessageSquare, Send, Star } from "lucide-react";
 
-import { FEEDBACK_SCRIPT_POST_URL, ratingEmojiForStars } from "./lib/feedback-script";
+import { ratingEmojiForStars } from "./lib/rating-emoji";
+import { supabase } from "@/lib/supabase";
 import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 
 async function launchFullScreenConfetti() {
@@ -153,63 +154,44 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 }
 
 export default function HomePage() {
-  const [name, setName] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
-  const [showNameHint, setShowNameHint] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    let ok = true;
-    if (!name.trim()) {
-      setShowNameHint(true);
-      ok = false;
-    } else setShowNameHint(false);
     if (rating === null) {
       setShowRatingHint(true);
-      ok = false;
-    } else setShowRatingHint(false);
-    if (!ok) return;
+      return;
+    }
+    setShowRatingHint(false);
 
     const stars = rating;
-    if (stars === null) return;
-
     setSubmitError(null);
     setIsSubmitting(true);
 
     const text = message.trim();
-    const timestamp = new Date().toISOString();
-    const body = new URLSearchParams({
-      name: name.trim(),
-      rating: String(stars),
-      message: text,
-      timestamp,
-      ratingEmoji: ratingEmojiForStars(stars),
-    });
 
     try {
-      /*
-       * Google Apps Script Web Apps often omit CORS headers on POST responses.
-       * `cors` mode then fails visibility checks or yields non-ok status after redirects.
-       * `no-cors` sends a "simple" POST; the response is opaque (status not readable),
-       * but doPost still runs and the Sheet receives e.parameter fields.
-       */
-      await fetch(FEEDBACK_SCRIPT_POST_URL, {
-        method: "POST",
-        mode: "no-cors",
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: body.toString(),
-      });
-    } catch {
+      const { error } = await supabase
+        .from("feedbacks")
+        .insert([{ rating: stars, message: text }]);
+
+      if (error) {
+        console.error("[supabase] insert feedback", error);
+        setSubmitError(
+          "We could not save your feedback. Check your connection or try WhatsApp.",
+        );
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (err) {
+      console.error(err);
       setSubmitError(
-        "We could not send your feedback just now. Please try again or message us on WhatsApp.",
+        "We could not save your feedback. Please try again or message us on WhatsApp.",
       );
       setIsSubmitting(false);
       return;
@@ -221,12 +203,10 @@ export default function HomePage() {
   }
 
   function reset() {
-    setName("");
     setRating(null);
     setMessage("");
     setSubmitted(false);
     setShowRatingHint(false);
-    setShowNameHint(false);
     setSubmitError(null);
     setIsSubmitting(false);
   }
@@ -284,31 +264,6 @@ export default function HomePage() {
                     animate="visible"
                     className="flex w-full flex-col items-center gap-6"
                   >
-                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
-                      <label htmlFor="name" className={labelClass}>
-                        <User className="size-3.5 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
-                        <span>නම / Name</span>
-                      </label>
-                      <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        autoComplete="name"
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value);
-                          setShowNameHint(false);
-                        }}
-                        placeholder="Your name"
-                        className={fieldClass}
-                      />
-                      {showNameHint ? (
-                        <p className="text-center text-xs font-medium text-red-600" role="alert">
-                          නම අවශ්‍යයි / Name required
-                        </p>
-                      ) : null}
-                    </motion.div>
-
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
                         <Star className="size-3.5 shrink-0 fill-amber-400/90 text-amber-600/90" strokeWidth={2} aria-hidden />
