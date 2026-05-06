@@ -1,7 +1,7 @@
 {
   "/_not-found/page": "/_not-found",
-  "/feedback/page": "/feedback",
   "/page": "/",
+  "/feedback/page": "/feedback",
   "/admin/page": "/admin",
   "/qr-display/page": "/qr-display"
 }
