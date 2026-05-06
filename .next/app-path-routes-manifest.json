@@ -2,6 +2,6 @@
   "/_not-found/page": "/_not-found",
   "/feedback/page": "/feedback",
   "/page": "/",
-  "/qr-display/page": "/qr-display",
-  "/admin/page": "/admin"
+  "/admin/page": "/admin",
+  "/qr-display/page": "/qr-display"
 }

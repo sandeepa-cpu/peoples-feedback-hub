@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Feedbacks · Admin | Peoples Bakers",
   description: "View Peoples Bakers customer feedback from Supabase.",
