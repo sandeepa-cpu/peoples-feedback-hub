@@ -2,6 +2,6 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/feedback/page": "app/feedback/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/qr-display/page": "app/qr-display/page.js"
+  "/qr-display/page": "app/qr-display/page.js",
+  "/admin/page": "app/admin/page.js"
 }
