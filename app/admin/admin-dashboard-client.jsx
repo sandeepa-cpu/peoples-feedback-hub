@@ -14,9 +14,7 @@ import {
   TrendingUp,
   UtensilsCrossed,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-
-import { createSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const ADMIN_SESSION_KEY = 'is_admin_authenticated'
 
@@ -113,6 +111,8 @@ function displayTextField(raw) {
 }
 
 export default function AdminDashboardClient() {
+  const adminPasswordRef = useRef('')
+
   const [authChecked, setAuthChecked] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
@@ -125,7 +125,12 @@ export default function AdminDashboardClient() {
 
   useEffect(() => {
     try {
-      setAuthenticated(sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true')
+      if (sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' && !adminPasswordRef.current) {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY)
+      }
+      setAuthenticated(
+        sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' && Boolean(adminPasswordRef.current),
+      )
     } catch {
       setAuthenticated(false)
     }
@@ -135,42 +140,68 @@ export default function AdminDashboardClient() {
   useEffect(() => {
     if (!authChecked || !authenticated) return
 
+    const pwd = adminPasswordRef.current
+    if (!pwd) {
+      setRows([])
+      setLoadError('Unauthorized. Please sign in with your admin password.')
+      setLoading(false)
+      setAuthenticated(false)
+      try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY)
+      } catch {
+        /* ignore */
+      }
+      return
+    }
+
     let cancelled = false
 
     async function load() {
       setLoading(true)
       setLoadError(null)
 
-      if (!isSupabaseConfigured()) {
-        if (!cancelled) {
-          setLoadError(
-            'Supabase env missing in this build: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY on Vercel, then redeploy.',
-          )
-          setRows([])
-          setLoading(false)
-        }
-        return
-      }
-
       try {
-        const client = createSupabaseClient()
-        const { data, error } = await client
-          .from('feedbacks')
-          .select(
-            'id, created_at, rating, message, name, phone_number, item_category, service_type, quick_tags',
-          )
-          .order('created_at', { ascending: false })
+        const res = await fetch('/api/admin/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd }),
+        })
+
+        let json = null
+        try {
+          json = await res.json()
+        } catch {
+          json = null
+        }
 
         if (cancelled) return
-        if (error) {
-          setLoadError(error.message || 'Unknown Supabase error')
+
+        if (res.status === 401) {
+          setLoadError(json?.error || 'Unauthorized')
           setRows([])
-        } else {
-          setRows(data ?? [])
+          adminPasswordRef.current = ''
+          setAuthenticated(false)
+          try {
+            sessionStorage.removeItem(ADMIN_SESSION_KEY)
+          } catch {
+            /* ignore */
+          }
+          return
         }
+
+        if (!res.ok || !json || json.success !== true) {
+          setLoadError(
+            (json && typeof json.error === 'string' && json.error) ||
+              'Could not load feedback. Check server configuration.',
+          )
+          setRows([])
+          return
+        }
+
+        setRows(Array.isArray(json.data) ? json.data : [])
       } catch (e) {
         if (cancelled) return
-        setLoadError(e instanceof Error ? e.message : String(e))
+        setLoadError(e instanceof Error ? e.message : 'Network error while loading data.')
         setRows([])
       } finally {
         if (!cancelled) setLoading(false)
@@ -230,6 +261,7 @@ export default function AdminDashboardClient() {
       }
 
       if (res.ok && data && data.success === true) {
+        adminPasswordRef.current = trimmed
         try {
           sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
         } catch {
@@ -260,6 +292,7 @@ export default function AdminDashboardClient() {
   }
 
   function handleLogout() {
+    adminPasswordRef.current = ''
     try {
       sessionStorage.removeItem(ADMIN_SESSION_KEY)
     } catch {
@@ -390,8 +423,6 @@ export default function AdminDashboardClient() {
 
   /* —— Dashboard —— */
 
-  const supabaseReady = isSupabaseConfigured()
-
   return (
     <>
       {purpleBackdrop}
@@ -426,14 +457,12 @@ export default function AdminDashboardClient() {
         </header>
 
         <main className="mx-auto mt-8 max-w-6xl pb-16">
-          {!supabaseReady || loadError ? (
+          {loadError ? (
             <div
               role="alert"
               className="mb-8 rounded-2xl border border-amber-200/60 bg-[#fefce8] px-5 py-4 text-sm shadow-md text-amber-950"
             >
-              <span className="font-bold">Unable to load data.</span>{' '}
-              {loadError ??
-                'Supabase keys are missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY on Vercel and redeploy. Also confirm anonymous SELECT policy on feedbacks.'}
+              <span className="font-bold">Unable to load data.</span> {loadError}
             </div>
           ) : null}
 
@@ -524,7 +553,7 @@ export default function AdminDashboardClient() {
                   <MessageSquareQuote className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
                   <h2 className="text-lg font-black tracking-wide text-purple-950">Recent Feedback Entries</h2>
                 </div>
-                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-stone-500">Newest first · Live from Supabase</p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-stone-500">Newest first · Secure server API</p>
               </div>
               <Link
                 href="/"
@@ -576,14 +605,14 @@ export default function AdminDashboardClient() {
                       </td>
                     </tr>
                   ) : null}
-                  {!loading && rows.length === 0 && supabaseReady && !loadError ? (
+                  {!loading && rows.length === 0 && !loadError ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-16 text-center text-stone-500">
                         No feedback yet. Invite customers from the homepage form.
                       </td>
                     </tr>
                   ) : null}
-                  {!loading && (loadError || !supabaseReady) ? (
+                  {!loading && loadError ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-14 text-center text-sm text-stone-500">
                         Rows could not be loaded — see the notice above for details.
@@ -591,7 +620,6 @@ export default function AdminDashboardClient() {
                     </tr>
                   ) : null}
                   {!loading &&
-                    supabaseReady &&
                     !loadError &&
                     rows.map((row) => {
                       const raw = typeof row.rating === 'number' ? row.rating : parseFloat(row.rating)
