@@ -378,7 +378,7 @@ export default function HomePage() {
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
                         <Layers className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
-                        <span>Product category (optional)</span>
+                        <span>නිෂ්පාදන ගණය / PRODUCT CATEGORY (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Product category">
                         {ITEM_CATEGORY_OPTIONS.map((opt) => (
@@ -399,7 +399,7 @@ export default function HomePage() {
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
                         <UtensilsCrossed className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
-                        <span>Service type (optional)</span>
+                        <span>සේවා වර්ගය / SERVICE TYPE (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Service type">
                         {SERVICE_TYPE_OPTIONS.map((opt) => (
@@ -420,7 +420,7 @@ export default function HomePage() {
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
                         <Sparkles className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
-                        <span>Quick tags (optional)</span>
+                        <span>කෙටි සටහන් / QUICK TAGS (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" aria-label="Quick tags">
                         {QUICK_TAG_LABELS.map((tag) => {
