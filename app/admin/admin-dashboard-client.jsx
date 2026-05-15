@@ -19,7 +19,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { createSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 
 const ADMIN_SESSION_KEY = 'is_admin_authenticated'
-const ADMIN_PASSWORD = 'PeoplesBakers2026'
 
 const PURPLE_DEEP = '#8e248d'
 const PURPLE_RICH = '#902391'
@@ -118,6 +117,7 @@ export default function AdminDashboardClient() {
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [rows, setRows] = useState([])
   const [loadError, setLoadError] = useState(null)
@@ -208,19 +208,54 @@ export default function AdminDashboardClient() {
     return { thisCount, lastCount, deltaPct }
   }, [rows])
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault()
     setLoginError('')
-    if (password.trim() === ADMIN_PASSWORD) {
+    setIsSubmitting(true)
+
+    const trimmed = password.trim()
+
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: trimmed }),
+      })
+
+      let data = null
       try {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
+        data = await res.json()
       } catch {
-        /* ignore quota / privacy mode */
+        data = null
       }
-      setAuthenticated(true)
-      setPassword('')
-    } else {
-      setLoginError('Incorrect password. Please try again.')
+
+      if (res.ok && data && data.success === true) {
+        try {
+          sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
+        } catch {
+          /* ignore quota / privacy mode */
+        }
+        setAuthenticated(true)
+        setPassword('')
+        return
+      }
+
+      if (res.status === 503) {
+        setLoginError(
+          (data && typeof data.error === 'string' && data.error) ||
+            'Administrator login is not configured on the server. Set ADMIN_PASSWORD (server-only, no NEXT_PUBLIC_) on Vercel or in .env.local, then redeploy.',
+        )
+        return
+      }
+
+      setLoginError(
+        (data && typeof data.error === 'string' && data.error) ||
+          'Incorrect password. Please try again.',
+      )
+    } catch {
+      setLoginError('Unable to reach the server. Check your connection and try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -232,6 +267,7 @@ export default function AdminDashboardClient() {
     }
     setAuthenticated(false)
     setLoginError('')
+    setIsSubmitting(false)
     setRows([])
     setLoadError(null)
     setLoading(false)
@@ -306,11 +342,12 @@ export default function AdminDashboardClient() {
                   type="password"
                   autoComplete="current-password"
                   value={password}
+                  disabled={isSubmitting}
                   onChange={(ev) => {
                     setPassword(ev.target.value)
                     setLoginError('')
                   }}
-                  className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-stone-900 shadow-inner outline-none ring-purple-950/15 transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4"
+                  className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-stone-900 shadow-inner outline-none ring-purple-950/15 transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60"
                   placeholder="Enter password"
                 />
               </div>
@@ -324,10 +361,19 @@ export default function AdminDashboardClient() {
               ) : null}
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold uppercase tracking-[0.12em] shadow-lg transition hover:brightness-105 hover:shadow-xl active:scale-[0.99]"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+                className="flex w-full min-h-[3.25rem] items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold uppercase tracking-[0.12em] shadow-lg transition hover:brightness-105 hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100"
                 style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
               >
-                Login
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />
+                    Verifying…
+                  </>
+                ) : (
+                  'Login'
+                )}
               </button>
             </form>
           </div>
