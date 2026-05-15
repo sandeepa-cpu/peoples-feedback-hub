@@ -98,6 +98,21 @@ function formatTableDateTime(iso) {
   return { dateLine, timeLine }
 }
 
+function displayCustomerName(raw) {
+  if (raw == null) return null
+  const s = String(raw).trim()
+  return s.length > 0 ? s : null
+}
+
+/** Treat empty, whitespace, and legacy bad values as missing for display */
+function displayTextField(raw) {
+  if (raw == null) return null
+  const s = String(raw).trim()
+  if (!s) return null
+  if (s === 'true' || s === 'false') return null
+  return s
+}
+
 export default function AdminDashboardClient() {
   const [authChecked, setAuthChecked] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
@@ -141,7 +156,9 @@ export default function AdminDashboardClient() {
         const client = createSupabaseClient()
         const { data, error } = await client
           .from('feedbacks')
-          .select('id, created_at, rating, message')
+          .select(
+            'id, created_at, rating, message, name, phone_number, item_category, service_type, quick_tags',
+          )
           .order('created_at', { ascending: false })
 
         if (cancelled) return
@@ -473,11 +490,26 @@ export default function AdminDashboardClient() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[340px] text-left">
+              <table className="w-full min-w-[52rem] text-left">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-50/90">
                     <th scope="col" className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
                       Rating
+                    </th>
+                    <th scope="col" className="min-w-[7rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Customer Name
+                    </th>
+                    <th scope="col" className="min-w-[6.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Phone
+                    </th>
+                    <th scope="col" className="min-w-[5.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Category
+                    </th>
+                    <th scope="col" className="min-w-[5.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Service
+                    </th>
+                    <th scope="col" className="min-w-[8rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
+                      Quick tags
                     </th>
                     <th scope="col" className="min-w-[12rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
                       Comment
@@ -490,7 +522,7 @@ export default function AdminDashboardClient() {
                 <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={3} className="px-6 py-20 text-center text-stone-500">
+                      <td colSpan={8} className="px-6 py-20 text-center text-stone-500">
                         <span className="inline-flex items-center gap-3 text-base font-semibold">
                           <Loader2 className="h-6 w-6 animate-spin" style={{ color: PURPLE_DEEP }} aria-hidden />
                           Loading feedback…
@@ -500,14 +532,14 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && rows.length === 0 && supabaseReady && !loadError ? (
                     <tr>
-                      <td colSpan={3} className="px-6 py-16 text-center text-stone-500">
+                      <td colSpan={8} className="px-6 py-16 text-center text-stone-500">
                         No feedback yet. Invite customers from the homepage form.
                       </td>
                     </tr>
                   ) : null}
                   {!loading && (loadError || !supabaseReady) ? (
                     <tr>
-                      <td colSpan={3} className="px-6 py-14 text-center text-sm text-stone-500">
+                      <td colSpan={8} className="px-6 py-14 text-center text-sm text-stone-500">
                         Rows could not be loaded — see the notice above for details.
                       </td>
                     </tr>
@@ -519,10 +551,38 @@ export default function AdminDashboardClient() {
                       const raw = typeof row.rating === 'number' ? row.rating : parseFloat(row.rating)
                       const rv = clampRating(Number.isFinite(raw) ? raw : 0)
                       const { dateLine, timeLine } = formatTableDateTime(row.created_at)
+                      const shownName = displayCustomerName(row.name)
+                      const phoneText = displayTextField(row.phone_number)
+                      const categoryText = displayTextField(row.item_category)
+                      const serviceText = displayTextField(row.service_type)
+                      const tagsText = displayTextField(row.quick_tags)
                       return (
                         <tr key={row.id} className="transition-colors hover:bg-purple-500/[0.04] even:bg-stone-50/50">
                           <td className="px-6 py-4 align-middle">
                             <StarRow value={rv} size="sm" />
+                          </td>
+                          <td className="max-w-[10rem] px-6 py-4 align-middle">
+                            {shownName ? (
+                              <span className="font-medium text-purple-950">{shownName}</span>
+                            ) : (
+                              <span className="text-sm italic text-gray-400">Anonymous</span>
+                            )}
+                          </td>
+                          <td className="max-w-[8rem] px-6 py-4 align-middle font-mono text-xs tabular-nums text-stone-800">
+                            {phoneText ? (
+                              <span title={phoneText}>{phoneText}</span>
+                            ) : (
+                              <span className="text-xs italic text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="max-w-[6.5rem] px-6 py-4 align-middle text-sm text-purple-950">
+                            {categoryText ? categoryText : <span className="text-xs italic text-gray-400">—</span>}
+                          </td>
+                          <td className="max-w-[6rem] px-6 py-4 align-middle text-sm text-purple-950">
+                            {serviceText ? serviceText : <span className="text-xs italic text-gray-400">—</span>}
+                          </td>
+                          <td className="max-w-[10rem] px-6 py-4 align-middle text-xs leading-snug text-stone-700" title={tagsText ?? ''}>
+                            {tagsText ? tagsText : <span className="italic text-gray-400">—</span>}
                           </td>
                           <td className="max-w-md px-6 py-4 align-middle break-words whitespace-pre-wrap leading-relaxed text-stone-800">
                             {row.message && String(row.message).trim() !== '' ? (

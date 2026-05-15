@@ -1,8 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageSquare, Send, Star } from "lucide-react";
+import {
+  Layers,
+  MessageSquare,
+  Phone as PhoneIcon,
+  Send,
+  Sparkles,
+  Star,
+  UtensilsCrossed,
+  User,
+} from "lucide-react";
 
 import { ratingEmojiForStars } from "./lib/rating-emoji";
 import { supabase } from "@/lib/supabase";
@@ -86,6 +96,24 @@ const fieldClass =
 const labelClass =
   "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-stone-600";
 
+/** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
+const ITEM_CATEGORY_OPTIONS = ["Bakery", "Pastry", "Cake"] as const;
+const SERVICE_TYPE_OPTIONS = ["Dine-in", "Takeaway"] as const;
+const QUICK_TAG_LABELS = [
+  "Friendly staff",
+  "Fresh items",
+  "Quick service",
+  "Great value",
+] as const;
+
+function choiceChipClass(active: boolean) {
+  return `max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide backdrop-blur-sm transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
+    active
+      ? "border-amber-500/90 bg-gradient-to-b from-amber-50 to-orange-50/95 text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_4px_16px_-4px_rgba(217,119,6,0.4)]"
+      : "border-white/60 bg-white/45 text-stone-600 hover:border-amber-300/80 hover:bg-white/60 hover:shadow-md"
+  } rounded-xl border shadow-sm`;
+}
+
 function InteractiveRatingFace({ rating }: { rating: number | null }) {
   const emoji = rating === null ? "✨" : ratingEmojiForStars(rating);
 
@@ -155,11 +183,22 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 
 export default function HomePage() {
   const [rating, setRating] = useState<number | null>(null);
+  const [itemCategory, setItemCategory] = useState("");
+  const [serviceType, setServiceType] = useState("");
+  const [quickTags, setQuickTags] = useState<(typeof QUICK_TAG_LABELS)[number][]>([]);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  function toggleQuickTag(label: (typeof QUICK_TAG_LABELS)[number]) {
+    setQuickTags((prev) =>
+      prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label],
+    );
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -173,12 +212,27 @@ export default function HomePage() {
     setSubmitError(null);
     setIsSubmitting(true);
 
-    const text = message.trim();
+    /** Plain strings / null — never booleans or UI-validation flags */
+    const nameTrimmed = name.trim();
+    const phoneTrimmed = phone.trim();
+    const categoryTrimmed = itemCategory.trim();
+    const serviceTrimmed = serviceType.trim();
+    const messageTrimmed = message.trim();
+    const tagLabelsSorted =
+      quickTags.length > 0 ? [...quickTags].sort((a, b) => a.localeCompare(b)).join(", ") : null;
+
+    const insertPayload = {
+      rating: stars,
+      message: messageTrimmed,
+      name: nameTrimmed.length > 0 ? nameTrimmed : null,
+      phone_number: phoneTrimmed.length > 0 ? phoneTrimmed : null,
+      item_category: categoryTrimmed.length > 0 ? categoryTrimmed : null,
+      service_type: serviceTrimmed.length > 0 ? serviceTrimmed : null,
+      quick_tags: tagLabelsSorted,
+    };
 
     try {
-      const { error } = await supabase
-        .from("feedbacks")
-        .insert([{ rating: stars, message: text }]);
+      const { error } = await supabase.from("feedbacks").insert([insertPayload]);
 
       if (error) {
         console.error("[supabase] insert feedback", error);
@@ -204,6 +258,11 @@ export default function HomePage() {
 
   function reset() {
     setRating(null);
+    setItemCategory("");
+    setServiceType("");
+    setQuickTags([]);
+    setName("");
+    setPhone("");
     setMessage("");
     setSubmitted(false);
     setShowRatingHint(false);
@@ -264,6 +323,24 @@ export default function HomePage() {
                     animate="visible"
                     className="flex w-full flex-col items-center gap-6"
                   >
+                    <motion.div variants={staggerItem} className="flex flex-col items-center">
+                      <div
+                        className="relative flex h-[5.75rem] w-[5.75rem] items-center justify-center overflow-hidden rounded-[1.125rem] bg-white/75 shadow-[0_16px_40px_-18px_rgba(142,36,141,0.35),inset_0_1px_0_rgba(255,255,255,0.95)] ring-[3px] ring-[#fcee21]/85 ring-offset-[3px] ring-offset-white/40 sm:h-[6.75rem] sm:w-[6.75rem]"
+                      >
+                        <Image
+                          src="/logo.jpg"
+                          alt="Peoples Bakers logo"
+                          width={104}
+                          height={104}
+                          className="h-[5.25rem] w-[5.25rem] object-contain sm:h-[6rem] sm:w-[6rem]"
+                          priority
+                        />
+                      </div>
+                      <p className="mt-3 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-[#7a1f79]/90">
+                        Peoples Bakers
+                      </p>
+                    </motion.div>
+
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
                         <Star className="size-3.5 shrink-0 fill-amber-400/90 text-amber-600/90" strokeWidth={2} aria-hidden />
@@ -296,6 +373,108 @@ export default function HomePage() {
                           තක්සේරුවක් තෝරන්න / Pick a rating
                         </p>
                       ) : null}
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full space-y-3">
+                      <p className={labelClass}>
+                        <Layers className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <span>Product category (optional)</span>
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Product category">
+                        {ITEM_CATEGORY_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            role="radio"
+                            aria-checked={itemCategory === opt}
+                            onClick={() => setItemCategory(itemCategory === opt ? "" : opt)}
+                            className={choiceChipClass(itemCategory === opt)}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full space-y-3">
+                      <p className={labelClass}>
+                        <UtensilsCrossed className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <span>Service type (optional)</span>
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Service type">
+                        {SERVICE_TYPE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            role="radio"
+                            aria-checked={serviceType === opt}
+                            onClick={() => setServiceType(serviceType === opt ? "" : opt)}
+                            className={choiceChipClass(serviceType === opt)}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full space-y-3">
+                      <p className={labelClass}>
+                        <Sparkles className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <span>Quick tags (optional)</span>
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2" aria-label="Quick tags">
+                        {QUICK_TAG_LABELS.map((tag) => {
+                          const on = quickTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => toggleQuickTag(tag)}
+                              className={choiceChipClass(on)}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
+                      <label htmlFor="customer-name" className={labelClass}>
+                        <User className="size-3.5 shrink-0 text-[#7a1f79] opacity-[0.85]" strokeWidth={2} aria-hidden />
+                        <span>Your Name (Optional)</span>
+                      </label>
+                      <input
+                        id="customer-name"
+                        name="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name (or leave blank to stay anonymous)"
+                        autoComplete="name"
+                        maxLength={120}
+                        className={fieldClass}
+                      />
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
+                      <label htmlFor="customer-phone" className={labelClass}>
+                        <PhoneIcon className="size-3.5 shrink-0 text-[#7a1f79] opacity-[0.85]" strokeWidth={2} aria-hidden />
+                        <span>Phone (optional)</span>
+                      </label>
+                      <input
+                        id="customer-phone"
+                        name="phone_number"
+                        type="tel"
+                        inputMode="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="e.g. 077 123 4567"
+                        autoComplete="tel"
+                        maxLength={32}
+                        className={fieldClass}
+                      />
                     </motion.div>
 
                     <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
