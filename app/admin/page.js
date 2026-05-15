@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+// Supabase env: NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY (see lib/supabase.js)
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
