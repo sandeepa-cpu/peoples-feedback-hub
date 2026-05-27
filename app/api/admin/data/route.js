@@ -46,11 +46,11 @@ export async function POST(request) {
     )
   }
 
-  const restUrl = `https://${host}/rest/v1/feedbacks?select=*&order=created_at.desc`
+  const supabaseRestUrl = `https://${host}/rest/v1/feedback?select=*&order=created_at.desc`
 
   let res
   try {
-    res = await fetch(restUrl, {
+    res = await fetch(supabaseRestUrl, {
       method: 'GET',
       headers: {
         apikey: serviceKey,
