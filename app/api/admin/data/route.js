@@ -1,20 +1,21 @@
-import { createClient } from '@supabase/supabase-js'
-
 import { NextResponse } from 'next/server'
 
 import { verifyAdminPassword } from '@/lib/server/admin-password'
 
-function getSupabaseProjectUrl() {
-  const fromPublic =
-    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string'
+function getSupabaseHost() {
+  const raw =
+    (typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string'
       ? process.env.NEXT_PUBLIC_SUPABASE_URL.trim()
-      : ''
-  const fromSecret = typeof process.env.SUPABASE_URL === 'string' ? process.env.SUPABASE_URL.trim() : ''
-  return fromPublic || fromSecret || ''
+      : '') ||
+    (typeof process.env.SUPABASE_URL === 'string' ? process.env.SUPABASE_URL.trim() : '')
+
+  if (!raw) return ''
+
+  return raw.replace(/^https?:\/\//, '').replace(/\/+$/, '')
 }
 
 /**
- * POST { password } — validates admin password, then loads `feedbacks` with service role (bypasses RLS).
+ * POST { password } — validates admin password, then loads `feedbacks` via Supabase REST (service role).
  */
 export async function POST(request) {
   let body
@@ -28,35 +29,59 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  const url = getSupabaseProjectUrl()
+  const host = getSupabaseHost()
   const serviceKey =
     typeof process.env.SUPABASE_SERVICE_ROLE_KEY === 'string'
       ? process.env.SUPABASE_SERVICE_ROLE_KEY.trim()
       : ''
 
-  if (!url || !serviceKey) {
+  if (!host || !serviceKey) {
     return NextResponse.json(
       {
         success: false,
         error:
-          'Server is not configured for admin data. Set NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
+          'Server is not configured for admin data. Set NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY.',
       },
       { status: 503 },
     )
   }
 
-  const supabase = createClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  const restUrl = `https://${host}/rest/v1/feedbacks?select=*&order=created_at.desc`
 
-  const { data, error } = await supabase.from('feedbacks').select('*').order('created_at', { ascending: false })
-
-  if (error) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Failed to load feedback data.' },
-      { status: 500 },
-    )
+  let res
+  try {
+    res = await fetch(restUrl, {
+      method: 'GET',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to reach Supabase.'
+    return NextResponse.json({ success: false, error: msg }, { status: 502 })
   }
 
-  return NextResponse.json({ success: true, data: data ?? [] })
+  let payload = null
+  try {
+    payload = await res.json()
+  } catch {
+    payload = null
+  }
+
+  if (!res.ok) {
+    const message =
+      payload && typeof payload.message === 'string'
+        ? payload.message
+        : payload && typeof payload.error === 'string'
+          ? payload.error
+          : `Supabase request failed (${res.status}).`
+    return NextResponse.json({ success: false, error: message }, { status: res.status >= 500 ? 502 : 500 })
+  }
+
+  const data = Array.isArray(payload) ? payload : []
+
+  return NextResponse.json({ success: true, data })
 }
