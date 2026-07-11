@@ -2,17 +2,29 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
+  BarChart3,
   CalendarDays,
   ChevronRight,
+  Inbox,
   Loader2,
   Lock,
   LogOut,
+  Mail,
   MessageSquareQuote,
+  Phone,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Sparkles,
   Star,
+  Tag,
   TrendingDown,
   TrendingUp,
+  Users,
   UtensilsCrossed,
+  X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -30,7 +42,7 @@ function clampRating(n) {
 /** Fractional gold stars using Lucide (0–5). */
 function StarRow({ value, size = 'md', className = '' }) {
   const v = clampRating(value)
-  const px = size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-8 w-8' : 'h-6 w-6'
+  const px = size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-7 w-7' : 'h-6 w-6'
 
   return (
     <div className={`flex items-center gap-0.5 ${className}`} aria-label={`Rating ${v} out of 5`}>
@@ -95,6 +107,15 @@ function formatTableDateTime(iso) {
   return { dateLine, timeLine }
 }
 
+function relativeDayLabel(iso) {
+  const now = new Date()
+  const target = new Date(iso)
+  const diffDays = Math.round((startOfLocalDay(now) - startOfLocalDay(target)) / 86400000)
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  return null
+}
+
 function displayCustomerName(raw) {
   if (raw == null) return null
   const s = String(raw).trim()
@@ -110,11 +131,52 @@ function displayTextField(raw) {
   return s
 }
 
+function nameInitials(name) {
+  if (!name) return '?'
+  const parts = name.split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+const AVATAR_PALETTES = [
+  'bg-purple-100 text-purple-900',
+  'bg-amber-100 text-amber-900',
+  'bg-emerald-100 text-emerald-900',
+  'bg-sky-100 text-sky-900',
+  'bg-rose-100 text-rose-900',
+  'bg-indigo-100 text-indigo-900',
+]
+
+function avatarPalette(name) {
+  if (!name) return 'bg-stone-100 text-stone-500'
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_PALETTES[hash % AVATAR_PALETTES.length]
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] },
+  }),
+}
+
+function ratingBadgeTone(v) {
+  if (v >= 4) return 'bg-emerald-50 text-emerald-800 ring-emerald-200'
+  if (v >= 3) return 'bg-amber-50 text-amber-800 ring-amber-200'
+  return 'bg-red-50 text-red-700 ring-red-200'
+}
+
 export default function AdminDashboardClient() {
   const adminPasswordRef = useRef('')
+  const adminEmailRef = useRef('')
 
   const [authChecked, setAuthChecked] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -122,14 +184,24 @@ export default function AdminDashboardClient() {
   const [rows, setRows] = useState([])
   const [loadError, setLoadError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [lastUpdated, setLastUpdated] = useState(null)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [ratingFilter, setRatingFilter] = useState(null)
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' && !adminPasswordRef.current) {
+      if (
+        sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' &&
+        (!adminPasswordRef.current || !adminEmailRef.current)
+      ) {
         sessionStorage.removeItem(ADMIN_SESSION_KEY)
       }
       setAuthenticated(
-        sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' && Boolean(adminPasswordRef.current),
+        sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true' &&
+          Boolean(adminPasswordRef.current) &&
+          Boolean(adminEmailRef.current),
       )
     } catch {
       setAuthenticated(false)
@@ -141,9 +213,10 @@ export default function AdminDashboardClient() {
     if (!authChecked || !authenticated) return
 
     const pwd = adminPasswordRef.current
-    if (!pwd) {
+    const mail = adminEmailRef.current
+    if (!pwd || !mail) {
       setRows([])
-      setLoadError('Unauthorized. Please sign in with your admin password.')
+      setLoadError('Unauthorized. Please sign in with your admin email and password.')
       setLoading(false)
       setAuthenticated(false)
       try {
@@ -164,7 +237,7 @@ export default function AdminDashboardClient() {
         const res = await fetch('/api/admin/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pwd }),
+          body: JSON.stringify({ email: mail, password: pwd }),
         })
 
         let json = null
@@ -180,6 +253,7 @@ export default function AdminDashboardClient() {
           setLoadError(json?.error || 'Unauthorized')
           setRows([])
           adminPasswordRef.current = ''
+          adminEmailRef.current = ''
           setAuthenticated(false)
           try {
             sessionStorage.removeItem(ADMIN_SESSION_KEY)
@@ -199,6 +273,7 @@ export default function AdminDashboardClient() {
         }
 
         setRows(Array.isArray(json.data) ? json.data : [])
+        setLastUpdated(new Date())
       } catch (e) {
         if (cancelled) return
         setLoadError(e instanceof Error ? e.message : 'Network error while loading data.')
@@ -212,7 +287,7 @@ export default function AdminDashboardClient() {
     return () => {
       cancelled = true
     }
-  }, [authChecked, authenticated])
+  }, [authChecked, authenticated, reloadKey])
 
   const today = useMemo(() => new Date(), [rows])
 
@@ -239,18 +314,45 @@ export default function AdminDashboardClient() {
     return { thisCount, lastCount, deltaPct }
   }, [rows])
 
+  const ratingDistribution = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0]
+    for (const row of rows) {
+      const r = typeof row.rating === 'number' ? row.rating : parseFloat(row.rating)
+      const idx = Math.round(clampRating(Number.isFinite(r) ? r : 0)) - 1
+      if (idx >= 0 && idx <= 4) counts[idx]++
+    }
+    const max = Math.max(1, ...counts)
+    return { counts, max }
+  }, [rows])
+
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return rows.filter((row) => {
+      if (ratingFilter !== null) {
+        const r = typeof row.rating === 'number' ? row.rating : parseFloat(row.rating)
+        if (Math.round(clampRating(Number.isFinite(r) ? r : 0)) !== ratingFilter) return false
+      }
+      if (!q) return true
+      const hay = [row.name, row.message, row.phone_number, row.item_category, row.service_type, row.quick_tags]
+        .map((v) => (v == null ? '' : String(v).toLowerCase()))
+        .join(' ')
+      return hay.includes(q)
+    })
+  }, [rows, searchQuery, ratingFilter])
+
   async function handleLogin(e) {
     e.preventDefault()
     setLoginError('')
     setIsSubmitting(true)
 
-    const trimmed = password.trim()
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
 
     try {
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: trimmed }),
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
       })
 
       let data = null
@@ -261,7 +363,8 @@ export default function AdminDashboardClient() {
       }
 
       if (res.ok && data && data.success === true) {
-        adminPasswordRef.current = trimmed
+        adminEmailRef.current = trimmedEmail
+        adminPasswordRef.current = trimmedPassword
         try {
           sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
         } catch {
@@ -275,14 +378,14 @@ export default function AdminDashboardClient() {
       if (res.status === 503) {
         setLoginError(
           (data && typeof data.error === 'string' && data.error) ||
-            'Administrator login is not configured on the server. Set ADMIN_PASSWORD (server-only, no NEXT_PUBLIC_) on Vercel or in .env.local, then redeploy.',
+            'Administrator login is not configured. Set ADMIN_PASSWORD (and ADMIN_EMAIL) on Vercel or in .env.local, then redeploy.',
         )
         return
       }
 
       setLoginError(
         (data && typeof data.error === 'string' && data.error) ||
-          'Incorrect password. Please try again.',
+          'Incorrect email or password. Please try again.',
       )
     } catch {
       setLoginError('Unable to reach the server. Check your connection and try again.')
@@ -293,6 +396,7 @@ export default function AdminDashboardClient() {
 
   function handleLogout() {
     adminPasswordRef.current = ''
+    adminEmailRef.current = ''
     try {
       sessionStorage.removeItem(ADMIN_SESSION_KEY)
     } catch {
@@ -301,9 +405,12 @@ export default function AdminDashboardClient() {
     setAuthenticated(false)
     setLoginError('')
     setIsSubmitting(false)
+    setEmail('')
     setRows([])
     setLoadError(null)
     setLoading(false)
+    setSearchQuery('')
+    setRatingFilter(null)
   }
 
   const purpleBackdrop = (
@@ -311,10 +418,11 @@ export default function AdminDashboardClient() {
       <div
         className="fixed inset-0 -z-20 min-h-[100dvh]"
         style={{
-          background: `linear-gradient(165deg, ${PURPLE_RICH} 0%, ${PURPLE_DEEP} 45%, #5c1460 100%)`,
+          background: `linear-gradient(165deg, ${PURPLE_RICH} 0%, ${PURPLE_DEEP} 45%, #4b0f4e 100%)`,
         }}
       />
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.12] [background-image:radial-gradient(circle_at_20%_20%,white,transparent_45%),radial-gradient(circle_at_80%_10%,white,transparent_40%),radial-gradient(circle_at_90%_80%,white,transparent_35%)]" />
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.14] [background-image:radial-gradient(circle_at_15%_15%,white,transparent_42%),radial-gradient(circle_at_85%_8%,#fcee21,transparent_34%),radial-gradient(circle_at_92%_85%,white,transparent_38%)]" />
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.05] [background-image:repeating-linear-gradient(45deg,white_0,white_1px,transparent_1px,transparent_18px)]" />
     </>
   )
 
@@ -332,84 +440,125 @@ export default function AdminDashboardClient() {
     )
   }
 
+  /* —— Login —— */
+
   if (!authenticated) {
     return (
       <>
         {purpleBackdrop}
         <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12">
-          <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-[0_28px_80px_-28px_rgba(0,0,0,0.45)] ring-1 ring-black/5 sm:p-10">
-            <div className="text-center">
-              <div className="mx-auto flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-2xl bg-stone-50 ring-4 ring-[#fcee21]/70">
-                <Image
-                  src="/logo.jpg"
-                  alt="Peoples Bakers logo"
-                  width={112}
-                  height={112}
-                  className="h-[96px] w-[96px] object-contain"
-                  priority
-                />
-              </div>
-              <div className="mt-8">
-                <h1 className="text-xl font-bold tracking-[0.2em] text-[#581c5c]" style={{ color: PURPLE_DEEP }}>
-                  PEOPLES BAKERS
-                </h1>
-                <p className="mt-1 text-xl font-semibold text-stone-800">හිත ඉල්ලන රස</p>
-                <div className="mx-auto mt-4 flex justify-center gap-1 text-yellow-600">
-                  <UtensilsCrossed className="h-5 w-5" aria-hidden strokeWidth={1.75} />
-                  <ChevronRight className="h-5 w-5 opacity-50" aria-hidden />
-                  <MessageSquareQuote className="h-5 w-5" aria-hidden strokeWidth={1.75} />
+          <motion.div
+            initial={{ opacity: 0, y: 26, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md overflow-hidden rounded-[1.75rem] bg-white shadow-[0_32px_90px_-30px_rgba(0,0,0,0.5)] ring-1 ring-black/5"
+          >
+            <div
+              className="h-2 w-full"
+              style={{ background: `linear-gradient(90deg, ${YELLOW_ACC}, ${PURPLE_DEEP}, ${YELLOW_ACC})` }}
+            />
+            <div className="p-8 sm:p-10">
+              <div className="text-center">
+                <div className="mx-auto flex h-[116px] w-[116px] items-center justify-center overflow-hidden rounded-3xl bg-stone-50 shadow-md ring-4 ring-[#fcee21]/70">
+                  <Image
+                    src="/logo.jpg"
+                    alt="Peoples Bakers logo"
+                    width={112}
+                    height={112}
+                    className="h-[94px] w-[94px] object-contain"
+                    priority
+                  />
                 </div>
-                <p className="mt-3 text-xs font-medium uppercase tracking-widest text-stone-500">Administrator portal</p>
+                <div className="mt-7">
+                  <h1 className="text-xl font-black tracking-[0.22em]" style={{ color: PURPLE_DEEP }}>
+                    PEOPLES BAKERS
+                  </h1>
+                  <p className="mt-1 text-xl font-semibold text-stone-800">හිත ඉල්ලන රස</p>
+                  <div className="mx-auto mt-4 flex justify-center gap-1 text-yellow-600">
+                    <UtensilsCrossed className="h-5 w-5" aria-hidden strokeWidth={1.75} />
+                    <ChevronRight className="h-5 w-5 opacity-50" aria-hidden />
+                    <MessageSquareQuote className="h-5 w-5" aria-hidden strokeWidth={1.75} />
+                  </div>
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-purple-950/5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-purple-950">
+                    <ShieldCheck className="h-3.5 w-3.5" aria-hidden strokeWidth={2.25} />
+                    Administrator Portal
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <form onSubmit={handleLogin} className="mt-10 space-y-5">
-              <div>
-                <label htmlFor="admin-password" className="flex items-center gap-2 text-sm font-semibold text-stone-700">
-                  <Lock className="h-4 w-4 shrink-0 text-purple-900/70" aria-hidden strokeWidth={2} />
-                  Administrator Password
-                </label>
-                <input
-                  id="admin-password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
+              <form onSubmit={handleLogin} className="mt-9 space-y-5">
+                <div>
+                  <label htmlFor="admin-email" className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+                    <Mail className="h-4 w-4 shrink-0 text-purple-900/70" aria-hidden strokeWidth={2} />
+                    Admin Email
+                  </label>
+                  <input
+                    id="admin-email"
+                    name="email"
+                    type="email"
+                    autoComplete="username"
+                    value={email}
+                    disabled={isSubmitting}
+                    onChange={(ev) => {
+                      setEmail(ev.target.value)
+                      setLoginError('')
+                    }}
+                    className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-stone-900 shadow-inner outline-none ring-purple-950/15 transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="admin-password" className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+                    <Lock className="h-4 w-4 shrink-0 text-purple-900/70" aria-hidden strokeWidth={2} />
+                    Administrator Password
+                  </label>
+                  <input
+                    id="admin-password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    disabled={isSubmitting}
+                    onChange={(ev) => {
+                      setPassword(ev.target.value)
+                      setLoginError('')
+                    }}
+                    className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-stone-900 shadow-inner outline-none ring-purple-950/15 transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60"
+                    placeholder="Enter password"
+                  />
+                </div>
+                <AnimatePresence>
+                  {loginError ? (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-800"
+                      role="alert"
+                    >
+                      {loginError}
+                    </motion.p>
+                  ) : null}
+                </AnimatePresence>
+                <button
+                  type="submit"
                   disabled={isSubmitting}
-                  onChange={(ev) => {
-                    setPassword(ev.target.value)
-                    setLoginError('')
-                  }}
-                  className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-stone-900 shadow-inner outline-none ring-purple-950/15 transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60"
-                  placeholder="Enter password"
-                />
-              </div>
-              {loginError ? (
-                <p
-                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-800"
-                  role="alert"
+                  aria-busy={isSubmitting}
+                  className="flex w-full min-h-[3.25rem] items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold uppercase tracking-[0.12em] shadow-lg transition hover:brightness-105 hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100"
+                  style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
                 >
-                  {loginError}
-                </p>
-              ) : null}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                aria-busy={isSubmitting}
-                className="flex w-full min-h-[3.25rem] items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold uppercase tracking-[0.12em] shadow-lg transition hover:brightness-105 hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100"
-                style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />
-                    Verifying…
-                  </>
-                ) : (
-                  'Login'
-                )}
-              </button>
-            </form>
-          </div>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />
+                      Verifying…
+                    </>
+                  ) : (
+                    'Login'
+                  )}
+                </button>
+              </form>
+            </div>
+          </motion.div>
           <Link
             href="/"
             className="mt-8 text-sm font-medium text-white/90 underline underline-offset-4 hover:text-[#fcee21]"
@@ -423,170 +572,319 @@ export default function AdminDashboardClient() {
 
   /* —— Dashboard —— */
 
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total Feedback',
+      value: rows.length,
+      sub: 'All time entries',
+      icon: Users,
+      iconBg: 'bg-purple-950/10',
+      iconColor: PURPLE_DEEP,
+    },
+    {
+      key: 'today',
+      label: 'Feedback Today',
+      value: totalToday,
+      sub: today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+      icon: CalendarDays,
+      iconBg: 'bg-amber-100',
+      iconColor: '#92400e',
+    },
+    {
+      key: 'week',
+      label: 'This Week',
+      value: weeklyTrend.thisCount,
+      sub: `Previous week ${weeklyTrend.lastCount}`,
+      icon: TrendingUp,
+      iconBg: 'bg-emerald-100',
+      iconColor: '#065f46',
+      trend: weeklyTrend.deltaPct,
+    },
+  ]
+
   return (
     <>
       {purpleBackdrop}
-      <div className="relative min-h-[100dvh] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-        <header className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-white/15 bg-white/10 px-6 py-8 shadow-xl backdrop-blur-md sm:px-10">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="absolute right-4 top-4 flex items-center gap-2 rounded-xl border border-white/30 bg-black/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-white/20 sm:right-6 sm:top-6 sm:px-4 sm:text-sm"
-          >
-            <LogOut className="h-4 w-4" aria-hidden strokeWidth={2.25} />
-            Logout
-          </button>
-          <div className="flex flex-col items-center text-center pt-8 sm:pt-4">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg ring-[3px] ring-[#fcee21]/80 sm:h-28 sm:w-28">
-              <Image
-                src="/logo.jpg"
-                alt="Peoples Bakers logo"
-                width={96}
-                height={96}
-                className="h-[88px] w-[88px] object-contain"
-                priority
-              />
+      <div className="relative min-h-[100dvh] pb-16">
+        {/* —— Top navbar —— */}
+        <div className="sticky top-0 z-40 border-b border-white/10 bg-[#7c1f7b]/80 shadow-lg backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow ring-2 ring-[#fcee21]/80">
+                <Image src="/logo.jpg" alt="Peoples Bakers logo" width={40} height={40} className="h-9 w-9 object-contain" priority />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black uppercase tracking-[0.18em] text-white sm:text-base">
+                  Peoples Bakers
+                </p>
+                <p className="truncate text-[11px] font-semibold uppercase tracking-widest text-[#fcee21]/90">
+                  Admin Dashboard
+                </p>
+              </div>
             </div>
-            <h1 className="mt-5 text-xl font-black tracking-[0.22em] text-white sm:text-2xl min-[480px]:tracking-[0.35em]">
-              PEOPLES BAKERS
-            </h1>
-            <p className="mt-2 font-serif text-2xl font-semibold tracking-wide text-[#fcee21] drop-shadow-md sm:text-3xl">
-              හිත ඉල්ලන රස
-            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setReloadKey((k) => k + 1)}
+                disabled={loading}
+                title="Refresh data"
+                className="flex h-10 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden strokeWidth={2.25} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-bold uppercase tracking-wide shadow transition hover:brightness-105 active:scale-[0.98] sm:px-4"
+                style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
+              >
+                <LogOut className="h-4 w-4" aria-hidden strokeWidth={2.5} />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
           </div>
-        </header>
+        </div>
 
-        <main className="mx-auto mt-8 max-w-6xl pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+          {/* —— Hero —— */}
+          <motion.header
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="relative mt-6 overflow-hidden rounded-3xl border border-white/15 bg-white/10 px-6 py-7 shadow-xl backdrop-blur-md sm:px-10"
+          >
+            <div
+              className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full opacity-25 blur-2xl"
+              style={{ background: YELLOW_ACC }}
+            />
+            <div className="relative flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  Welcome back 👋
+                </h1>
+                <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-white/85">
+                  Live customer feedback insights for{' '}
+                  <span className="font-bold text-[#fcee21]">Peoples Bakers</span> — හිත ඉල්ලන රස
+                </p>
+              </div>
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-white/70">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#fcee21]" aria-hidden strokeWidth={2.25} />
+                {lastUpdated
+                  ? `Updated ${lastUpdated.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                  : 'Secure server API'}
+              </p>
+            </div>
+          </motion.header>
+
           {loadError ? (
             <div
               role="alert"
-              className="mb-8 rounded-2xl border border-amber-200/60 bg-[#fefce8] px-5 py-4 text-sm shadow-md text-amber-950"
+              className="mt-6 rounded-2xl border border-amber-200/60 bg-[#fefce8] px-5 py-4 text-sm shadow-md text-amber-950"
             >
               <span className="font-bold">Unable to load data.</span> {loadError}
             </div>
           ) : null}
 
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.04]">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: PURPLE_DEEP }}>
-                    Feedback today
-                  </p>
-                  <p className="mt-2 text-4xl font-black tabular-nums text-stone-900">{totalToday}</p>
-                  <p className="mt-2 text-xs text-stone-500">{today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-950/10" style={{ color: PURPLE_DEEP }}>
-                  <CalendarDays className="h-6 w-6" aria-hidden strokeWidth={2} />
-                </span>
-              </div>
-            </div>
-
-            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.04]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: PURPLE_DEEP }}>
-                    Overall rating
-                  </p>
-                  <p className="mt-2 text-4xl font-black tabular-nums text-amber-800">
-                    {avgRating === null ? '—' : avgRating.toFixed(1)}
-                    {avgRating !== null ? (
-                      <span className="ml-2 text-xl font-semibold tabular-nums text-stone-500">/ 5</span>
+          {/* —— Stat cards —— */}
+          <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-5">
+            {statCards.map((card, i) => (
+              <motion.div
+                key={card.key}
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-28px_rgba(0,0,0,0.45)]"
+              >
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1 opacity-90"
+                  style={{ background: `linear-gradient(90deg, ${PURPLE_DEEP}, ${YELLOW_ACC})` }}
+                />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: PURPLE_DEEP }}>
+                      {card.label}
+                    </p>
+                    <p className="mt-2 text-4xl font-black tabular-nums text-stone-900">{card.value}</p>
+                    <p className="mt-2 truncate text-xs text-stone-500">{card.sub}</p>
+                    {typeof card.trend === 'number' ? (
+                      <p
+                        className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${
+                          card.trend >= 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-red-100 text-red-900'
+                        }`}
+                      >
+                        {card.trend >= 0 ? (
+                          <TrendingUp className="h-3.5 w-3.5" aria-hidden strokeWidth={2.5} />
+                        ) : (
+                          <TrendingDown className="h-3.5 w-3.5" aria-hidden strokeWidth={2.5} />
+                        )}
+                        {card.trend >= 0 ? '+' : ''}
+                        {card.trend}% vs prior week
+                      </p>
                     ) : null}
-                  </p>
-                  <StarRow value={avgRating ?? 0} size="lg" className="mt-4 justify-start" />
+                  </div>
+                  <span
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${card.iconBg} transition group-hover:scale-110`}
+                    style={{ color: card.iconColor }}
+                  >
+                    <card.icon className="h-6 w-6" aria-hidden strokeWidth={2} />
+                  </span>
                 </div>
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-                  <Star className="h-6 w-6 fill-amber-500 text-amber-600" aria-hidden strokeWidth={1.5} />
-                </span>
-              </div>
-            </div>
+              </motion.div>
+            ))}
 
-            <div className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.04] sm:col-span-2 lg:col-span-1">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: PURPLE_DEEP }}>
-                    Weekly trends
-                  </p>
-                  <p className="mt-4 text-lg font-semibold text-stone-800">
-                    This week{' '}
-                    <span className="font-black tabular-nums text-purple-950">{weeklyTrend.thisCount}</span>
-                    <span className="text-stone-500"> entries</span>
-                  </p>
-                  <p className="mt-2 text-sm text-stone-600">
-                    Previous week{' '}
-                    <span className="font-semibold tabular-nums">{weeklyTrend.lastCount}</span>
-                  </p>
-                  {weeklyTrend.deltaPct !== null ? (
-                    <p
-                      className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
-                        weeklyTrend.deltaPct >= 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-red-100 text-red-900'
-                      }`}
-                    >
-                      {weeklyTrend.deltaPct >= 0 ? (
-                        <TrendingUp className="h-3.5 w-3.5" aria-hidden strokeWidth={2.5} />
-                      ) : (
-                        <TrendingDown className="h-3.5 w-3.5" aria-hidden strokeWidth={2.5} />
-                      )}
-                      {weeklyTrend.deltaPct >= 0 ? '+' : ''}
-                      {weeklyTrend.deltaPct}% vs prior week
-                    </p>
-                  ) : weeklyTrend.thisCount === 0 && weeklyTrend.lastCount === 0 ? (
-                    <p className="mt-3 text-xs text-stone-500">Not enough weekly data yet.</p>
-                  ) : weeklyTrend.lastCount === 0 && weeklyTrend.thisCount > 0 ? (
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-wide" style={{ color: PURPLE_DEEP }}>
-                      New momentum this week
-                    </p>
-                  ) : null}
-                </div>
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ backgroundColor: `${YELLOW_ACC}44`, color: '#3d073f' }}>
-                  <TrendingUp className="h-6 w-6" aria-hidden strokeWidth={2.25} />
-                </span>
-              </div>
-            </div>
+            {/* Rating summary card */}
+            <motion.div
+              custom={3}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="relative overflow-hidden rounded-3xl p-6 text-white shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+              style={{ background: `linear-gradient(150deg, ${PURPLE_DEEP}, #5b1259)` }}
+            >
+              <div
+                className="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full opacity-20 blur-2xl"
+                style={{ background: YELLOW_ACC }}
+              />
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#fcee21]">Overall Rating</p>
+              <p className="mt-2 text-4xl font-black tabular-nums">
+                {avgRating === null ? '—' : avgRating.toFixed(1)}
+                {avgRating !== null ? <span className="ml-1.5 text-lg font-semibold text-white/70">/ 5</span> : null}
+              </p>
+              <StarRow value={avgRating ?? 0} size="md" className="mt-3" />
+              <p className="mt-3 text-xs text-white/75">
+                Based on <span className="font-bold tabular-nums text-white">{rows.length}</span> total review{rows.length === 1 ? '' : 's'}
+              </p>
+            </motion.div>
           </section>
 
-          <section className="mt-8 overflow-hidden rounded-3xl bg-white shadow-[0_28px_60px_-32px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.05]">
-            <div className="flex flex-col gap-3 border-b border-stone-100 bg-gradient-to-r from-purple-950/[0.04] via-white to-amber-50/40 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <MessageSquareQuote className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
-                  <h2 className="text-lg font-black tracking-wide text-purple-950">Recent Feedback Entries</h2>
-                </div>
-                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-stone-500">Newest first · Secure server API</p>
-              </div>
-              <Link
-                href="/"
-                className="inline-flex shrink-0 items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
-                style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
+          {/* —— Rating distribution —— */}
+          <motion.section
+            custom={4}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mt-6 rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] sm:p-8"
+          >
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
+              <h2 className="text-base font-black tracking-wide text-purple-950 sm:text-lg">Rating Distribution</h2>
+            </div>
+            <div className="mt-5 space-y-3">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const count = ratingDistribution.counts[star - 1]
+                const pct = rows.length > 0 ? Math.round((count / rows.length) * 100) : 0
+                const width = (count / ratingDistribution.max) * 100
+                return (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRatingFilter(ratingFilter === star ? null : star)}
+                    title={`Filter table to ${star}-star reviews`}
+                    className={`group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-purple-500/[0.05] ${
+                      ratingFilter === star ? 'bg-purple-500/[0.08] ring-1 ring-purple-300' : ''
+                    }`}
+                  >
+                    <span className="flex w-10 shrink-0 items-center justify-end gap-1 text-sm font-bold tabular-nums text-stone-700">
+                      {star}
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden strokeWidth={0} />
+                    </span>
+                    <span className="relative h-3.5 flex-1 overflow-hidden rounded-full bg-stone-100">
+                      <motion.span
+                        initial={{ width: 0 }}
+                        animate={{ width: `${width}%` }}
+                        transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{
+                          background:
+                            star >= 4
+                              ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                              : star === 3
+                                ? 'linear-gradient(90deg,#d97706,#f59e0b)'
+                                : 'linear-gradient(90deg,#dc2626,#f87171)',
+                        }}
+                      />
+                    </span>
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-500">
+                      {count} · {pct}%
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            {ratingFilter !== null ? (
+              <button
+                type="button"
+                onClick={() => setRatingFilter(null)}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-950/5 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-purple-950 transition hover:bg-purple-950/10"
               >
-                Open public form →
-              </Link>
+                <X className="h-3.5 w-3.5" aria-hidden strokeWidth={2.5} />
+                Clear {ratingFilter}-star filter
+              </button>
+            ) : null}
+          </motion.section>
+
+          {/* —— Feedback table —— */}
+          <motion.section
+            custom={5}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mt-6 overflow-hidden rounded-3xl bg-white shadow-[0_28px_60px_-32px_rgba(0,0,0,0.45)] ring-1 ring-black/[0.05]"
+          >
+            <div className="flex flex-col gap-4 border-b border-stone-100 bg-gradient-to-r from-purple-950/[0.04] via-white to-amber-50/40 px-6 py-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <MessageSquareQuote className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
+                    <h2 className="text-lg font-black tracking-wide text-purple-950">Recent Feedback Entries</h2>
+                  </div>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-widest text-stone-500">
+                    {filteredRows.length} of {rows.length} shown · Newest first
+                  </p>
+                </div>
+                <Link
+                  href="/"
+                  className="inline-flex shrink-0 items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
+                  style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
+                >
+                  Open public form →
+                </Link>
+              </div>
+
+              {/* Search */}
+              <div className="relative max-w-md">
+                <Search
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"
+                  aria-hidden
+                  strokeWidth={2}
+                />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search name, comment, phone, category…"
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50/80 py-2.5 pl-10 pr-4 text-sm text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 focus:ring-purple-950/10"
+                />
+              </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[52rem] text-left">
+              <table className="w-full min-w-[56rem] text-left">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-50/90">
+                    <th scope="col" className="min-w-[11rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Customer
+                    </th>
                     <th scope="col" className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
                       Rating
                     </th>
                     <th scope="col" className="min-w-[7rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
-                      Customer Name
+                      Details
                     </th>
-                    <th scope="col" className="min-w-[6.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
-                      Phone
-                    </th>
-                    <th scope="col" className="min-w-[5.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
-                      Category
-                    </th>
-                    <th scope="col" className="min-w-[5.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
-                      Service
-                    </th>
-                    <th scope="col" className="min-w-[8rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
-                      Quick tags
-                    </th>
-                    <th scope="col" className="min-w-[12rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
+                    <th scope="col" className="min-w-[14rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
                       Comment
                     </th>
                     <th scope="col" className="whitespace-nowrap px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
@@ -597,7 +895,7 @@ export default function AdminDashboardClient() {
                 <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-20 text-center text-stone-500">
+                      <td colSpan={5} className="px-6 py-20 text-center text-stone-500">
                         <span className="inline-flex items-center gap-3 text-base font-semibold">
                           <Loader2 className="h-6 w-6 animate-spin" style={{ color: PURPLE_DEEP }} aria-hidden />
                           Loading feedback…
@@ -605,68 +903,146 @@ export default function AdminDashboardClient() {
                       </td>
                     </tr>
                   ) : null}
-                  {!loading && rows.length === 0 && !loadError ? (
+                  {!loading && !loadError && rows.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-16 text-center text-stone-500">
-                        No feedback yet. Invite customers from the homepage form.
+                      <td colSpan={5} className="px-6 py-16 text-center">
+                        <Inbox className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
+                        <p className="mt-3 text-sm font-medium text-stone-500">
+                          No feedback yet. Invite customers from the homepage form.
+                        </p>
+                      </td>
+                    </tr>
+                  ) : null}
+                  {!loading && !loadError && rows.length > 0 && filteredRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-16 text-center">
+                        <Search className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
+                        <p className="mt-3 text-sm font-medium text-stone-500">
+                          No results for this search or filter.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery('')
+                            setRatingFilter(null)
+                          }}
+                          className="mt-3 text-sm font-bold text-purple-800 underline underline-offset-4 hover:text-purple-950"
+                        >
+                          Clear filters
+                        </button>
                       </td>
                     </tr>
                   ) : null}
                   {!loading && loadError ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-14 text-center text-sm text-stone-500">
+                      <td colSpan={5} className="px-6 py-14 text-center text-sm text-stone-500">
                         Rows could not be loaded — see the notice above for details.
                       </td>
                     </tr>
                   ) : null}
                   {!loading &&
                     !loadError &&
-                    rows.map((row) => {
+                    filteredRows.map((row) => {
                       const raw = typeof row.rating === 'number' ? row.rating : parseFloat(row.rating)
                       const rv = clampRating(Number.isFinite(raw) ? raw : 0)
                       const { dateLine, timeLine } = formatTableDateTime(row.created_at)
+                      const dayLabel = row.created_at ? relativeDayLabel(row.created_at) : null
                       const shownName = displayCustomerName(row.name)
                       const phoneText = displayTextField(row.phone_number)
                       const categoryText = displayTextField(row.item_category)
                       const serviceText = displayTextField(row.service_type)
                       const tagsText = displayTextField(row.quick_tags)
                       return (
-                        <tr key={row.id} className="transition-colors hover:bg-purple-500/[0.04] even:bg-stone-50/50">
-                          <td className="px-6 py-4 align-middle">
-                            <StarRow value={rv} size="sm" />
+                        <tr key={row.id} className="align-top transition-colors hover:bg-purple-500/[0.04] even:bg-stone-50/40">
+                          {/* Customer */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-black ${avatarPalette(shownName)}`}
+                                aria-hidden
+                              >
+                                {nameInitials(shownName)}
+                              </span>
+                              <div className="min-w-0">
+                                {shownName ? (
+                                  <p className="truncate font-semibold text-purple-950">{shownName}</p>
+                                ) : (
+                                  <p className="truncate text-sm italic text-gray-400">Anonymous</p>
+                                )}
+                                {phoneText ? (
+                                  <p className="mt-0.5 flex items-center gap-1 font-mono text-[11px] tabular-nums text-stone-500">
+                                    <Phone className="h-3 w-3 shrink-0" aria-hidden strokeWidth={2} />
+                                    {phoneText}
+                                  </p>
+                                ) : null}
+                              </div>
+                            </div>
                           </td>
-                          <td className="max-w-[10rem] px-6 py-4 align-middle">
-                            {shownName ? (
-                              <span className="font-medium text-purple-950">{shownName}</span>
-                            ) : (
-                              <span className="text-sm italic text-gray-400">Anonymous</span>
-                            )}
+                          {/* Rating */}
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1.5">
+                              <StarRow value={rv} size="sm" />
+                              <span
+                                className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ring-1 ${ratingBadgeTone(rv)}`}
+                              >
+                                {rv}.0 / 5
+                              </span>
+                            </div>
                           </td>
-                          <td className="max-w-[8rem] px-6 py-4 align-middle font-mono text-xs tabular-nums text-stone-800">
-                            {phoneText ? (
-                              <span title={phoneText}>{phoneText}</span>
-                            ) : (
-                              <span className="text-xs italic text-gray-400">—</span>
-                            )}
+                          {/* Details: category, service, tags */}
+                          <td className="px-6 py-4">
+                            <div className="flex max-w-[13rem] flex-wrap gap-1.5">
+                              {categoryText ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-900">
+                                  <UtensilsCrossed className="h-3 w-3" aria-hidden strokeWidth={2} />
+                                  {categoryText}
+                                </span>
+                              ) : null}
+                              {serviceText ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-900">
+                                  <Sparkles className="h-3 w-3" aria-hidden strokeWidth={2} />
+                                  {serviceText}
+                                </span>
+                              ) : null}
+                              {tagsText
+                                ? tagsText.split(',').map((t) => {
+                                    const tag = t.trim()
+                                    if (!tag) return null
+                                    return (
+                                      <span
+                                        key={tag}
+                                        className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700"
+                                      >
+                                        <Tag className="h-3 w-3" aria-hidden strokeWidth={2} />
+                                        {tag}
+                                      </span>
+                                    )
+                                  })
+                                : null}
+                              {!categoryText && !serviceText && !tagsText ? (
+                                <span className="text-xs italic text-gray-400">—</span>
+                              ) : null}
+                            </div>
                           </td>
-                          <td className="max-w-[6.5rem] px-6 py-4 align-middle text-sm text-purple-950">
-                            {categoryText ? categoryText : <span className="text-xs italic text-gray-400">—</span>}
-                          </td>
-                          <td className="max-w-[6rem] px-6 py-4 align-middle text-sm text-purple-950">
-                            {serviceText ? serviceText : <span className="text-xs italic text-gray-400">—</span>}
-                          </td>
-                          <td className="max-w-[10rem] px-6 py-4 align-middle text-xs leading-snug text-stone-700" title={tagsText ?? ''}>
-                            {tagsText ? tagsText : <span className="italic text-gray-400">—</span>}
-                          </td>
-                          <td className="max-w-md px-6 py-4 align-middle break-words whitespace-pre-wrap leading-relaxed text-stone-800">
+                          {/* Comment */}
+                          <td className="max-w-md px-6 py-4 break-words whitespace-pre-wrap leading-relaxed text-stone-800">
                             {row.message && String(row.message).trim() !== '' ? (
                               row.message
                             ) : (
                               <span className="italic text-stone-400">No comment provided</span>
                             )}
                           </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-right align-middle">
+                          {/* Date */}
+                          <td className="whitespace-nowrap px-6 py-4 text-right">
                             <div className="inline-block text-right">
+                              {dayLabel ? (
+                                <span
+                                  className="mb-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide"
+                                  style={{ backgroundColor: `${YELLOW_ACC}55`, color: '#3d073f' }}
+                                >
+                                  {dayLabel}
+                                </span>
+                              ) : null}
                               <p className="text-sm font-bold tabular-nums text-purple-950">{dateLine}</p>
                               <p className="text-xs tabular-nums text-stone-500">{timeLine}</p>
                             </div>
@@ -677,8 +1053,12 @@ export default function AdminDashboardClient() {
                 </tbody>
               </table>
             </div>
-          </section>
-        </main>
+          </motion.section>
+
+          <p className="mt-8 text-center text-[11px] font-semibold uppercase tracking-[0.35em] text-white/50">
+            Peoples Bakers · Admin
+          </p>
+        </div>
       </div>
     </>
   )

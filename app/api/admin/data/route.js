@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { verifyAdminPassword } from '@/lib/server/admin-password'
+import { verifyAdminCredentials } from '@/lib/server/admin-password'
 
 function getSupabaseHost() {
   const raw =
@@ -15,7 +15,7 @@ function getSupabaseHost() {
 }
 
 /**
- * POST { password } — validates admin password, then loads `feedbacks` via Supabase REST (service role).
+ * POST { email, password } — validates admin credentials, then loads `feedbacks` via Supabase REST.
  */
 export async function POST(request) {
   let body
@@ -25,7 +25,7 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!verifyAdminPassword(body?.password)) {
+  if (!verifyAdminCredentials(body?.email, body?.password)) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
