@@ -73,22 +73,24 @@ const staggerParent = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.09, delayChildren: 0.06 },
+    transition: { staggerChildren: 0.04 },
   },
 };
 
 const staggerItem = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.48, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
-/** Centered card — clean white over the brand-purple backdrop */
+/** Centered card — clean white over the brand-purple backdrop.
+ *  No backdrop-blur: it is very expensive on mobile GPUs and the card is
+ *  nearly opaque anyway. */
 const glassPanel =
-  "relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.94] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] backdrop-blur-2xl ring-1 ring-white/60 sm:p-9";
+  "relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.97] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] ring-1 ring-white/60 sm:p-9";
 
 const fieldClass =
   "mx-auto w-full max-w-sm rounded-xl border border-stone-200 bg-stone-50/80 px-3.5 py-2.5 text-center text-base leading-snug text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
@@ -376,22 +378,23 @@ export default function HomePage() {
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
         className="pb-bakery-bg relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px)+1.25rem)] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-12"
       >
+        {/* Animated blur blobs are desktop-only: large blurred layers hurt mobile scrolling/typing performance */}
         <div
-          className="pb-blob-a pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-[#fcee21]/14 blur-3xl"
+          className="pb-blob-a pointer-events-none absolute -left-24 top-16 hidden h-72 w-72 rounded-full bg-[#fcee21]/14 blur-3xl sm:block"
           aria-hidden
         />
         <div
-          className="pb-blob-b pointer-events-none absolute -right-20 bottom-24 h-80 w-80 rounded-full bg-white/12 blur-3xl"
+          className="pb-blob-b pointer-events-none absolute -right-20 bottom-24 hidden h-80 w-80 rounded-full bg-white/12 blur-3xl sm:block"
           aria-hidden
         />
         <div className="relative mx-auto flex w-full max-w-md flex-col items-center text-center">
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.04, ease: [0.22, 1, 0.36, 1] as const }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
             className="shrink-0 px-1"
           >
             <p className="font-peoples-bakers-display text-[clamp(1.85rem,5.5vw,2.45rem)] font-semibold tracking-[0.02em] text-white drop-shadow-[0_2px_12px_rgba(30,6,32,0.45)]">
@@ -409,10 +412,9 @@ export default function HomePage() {
           </motion.header>
 
           <motion.section
-            layout
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const }}
+            transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 1, 0.36, 1] as const }}
             className={`mt-8 w-full overflow-hidden ${glassPanel}`}
           >
             <div
@@ -689,7 +691,7 @@ export default function HomePage() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
+            transition={{ delay: 0.25, duration: 0.3 }}
             className="mt-10 font-peoples-bakers-display text-[0.625rem] uppercase tracking-[0.42em] text-white/65"
           >
             Peoples Bakers
