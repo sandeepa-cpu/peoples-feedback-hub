@@ -13,39 +13,38 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Bakery backdrop — peach → cream gradient + soft highlights */
+/* Brand backdrop — Peoples Bakers purple gradient + glow highlights */
 .pb-bakery-bg {
-  background-color: #fff8f0;
+  background-color: #8e248d;
   background-image:
     radial-gradient(
-      ellipse 120% 80% at 50% -20%,
-      rgba(255, 200, 170, 0.45),
-      transparent 58%
+      ellipse 90% 60% at 15% 12%,
+      rgba(255, 255, 255, 0.16),
+      transparent 46%
     ),
     radial-gradient(
-      ellipse 80% 55% at 100% 95%,
-      rgba(255, 228, 196, 0.5),
-      transparent 52%
+      ellipse 70% 45% at 88% 6%,
+      rgba(252, 238, 33, 0.2),
+      transparent 38%
     ),
     radial-gradient(
-      ellipse 70% 45% at 0% 85%,
-      rgba(255, 183, 150, 0.12),
-      transparent 45%
+      ellipse 80% 55% at 92% 90%,
+      rgba(255, 255, 255, 0.12),
+      transparent 42%
     ),
-    radial-gradient(circle at 1px 1px, rgba(120, 80, 60, 0.04) 1px, transparent 0),
-    linear-gradient(
-      165deg,
-      #ffc8a8 0%,
-      #ffd8c4 22%,
-      #ffe8d8 48%,
-      #fff4e8 72%,
-      #fffef8 100%
-    );
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.035) 0,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 18px
+    ),
+    linear-gradient(165deg, #a02b9f 0%, #902391 40%, #7a1f79 70%, #4b0f4e 100%);
   background-size:
     100% 100%,
     100% 100%,
     100% 100%,
-    22px 22px,
+    auto,
     100% 100%;
 }
 

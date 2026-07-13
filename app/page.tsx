@@ -86,15 +86,15 @@ const staggerItem = {
   },
 };
 
-/** Centered glass card — frost, depth, subtle specular edge */
+/** Centered card — clean white over the brand-purple backdrop */
 const glassPanel =
-  "relative w-full rounded-[1.875rem] border border-white/50 bg-white/[0.27] p-6 shadow-[0_32px_80px_-24px_rgba(61,47,36,0.32),0_12px_40px_-18px_rgba(180,83,9,0.14),inset_0_1px_0_0_rgba(255,255,255,0.92)] backdrop-blur-2xl ring-1 ring-white/45 sm:p-9";
+  "relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.94] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] backdrop-blur-2xl ring-1 ring-white/60 sm:p-9";
 
 const fieldClass =
-  "mx-auto w-full max-w-sm rounded-xl border border-white/55 bg-white/50 px-3.5 py-2.5 text-center text-base leading-snug text-stone-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9)] outline-none backdrop-blur-md transition placeholder:text-stone-400 focus:border-amber-400/80 focus:bg-white/65 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.25),inset_0_1px_2px_rgba(255,255,255,0.95)]";
+  "mx-auto w-full max-w-sm rounded-xl border border-stone-200 bg-stone-50/80 px-3.5 py-2.5 text-center text-base leading-snug text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
 
 const labelClass =
-  "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-stone-600";
+  "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-[#6d1b6c]";
 
 /** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
 const ITEM_CATEGORY_OPTIONS = ["Bakery", "Pastry", "Cake"] as const;
@@ -107,10 +107,10 @@ const QUICK_TAG_LABELS = [
 ] as const;
 
 function choiceChipClass(active: boolean) {
-  return `max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide backdrop-blur-sm transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
+  return `max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
     active
-      ? "border-amber-500/90 bg-gradient-to-b from-amber-50 to-orange-50/95 text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_4px_16px_-4px_rgba(217,119,6,0.4)]"
-      : "border-white/60 bg-white/45 text-stone-600 hover:border-amber-300/80 hover:bg-white/60 hover:shadow-md"
+      ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
+      : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
   } rounded-xl border shadow-sm`;
 }
 
@@ -162,7 +162,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 
   return (
     <div
-      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-white/35 bg-white/20 px-4 py-3 backdrop-blur-md"
+      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-[#902391]/15 bg-gradient-to-b from-[#fbf5fb] to-[#f6e9f6] px-4 py-3 shadow-inner"
       aria-hidden
     >
       <motion.span
@@ -174,7 +174,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
       >
         {emoji}
       </motion.span>
-      <span className="mt-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-500">
+      <span className="mt-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[#7a1f79]/70">
         {rating === null ? "Pick a rating" : "Your reaction"}
       </span>
     </div>
@@ -285,16 +285,16 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.04, ease: [0.22, 1, 0.36, 1] as const }}
             className="shrink-0 px-1"
           >
-            <p className="font-peoples-bakers-display text-[clamp(1.85rem,5.5vw,2.45rem)] font-semibold tracking-[0.02em] text-[#3d2f24]">
+            <p className="font-peoples-bakers-display text-[clamp(1.85rem,5.5vw,2.45rem)] font-semibold tracking-[0.02em] text-white drop-shadow-[0_2px_12px_rgba(30,6,32,0.45)]">
               Peoples Bakers
             </p>
-            <p className="mt-2 font-peoples-bakers-display text-sm font-medium italic tracking-wide text-amber-900/80 sm:text-base">
+            <p className="mt-2 font-peoples-bakers-display text-sm font-medium italic tracking-wide text-[#fcee21]/95 sm:text-base">
               Artisan warmth, every day
             </p>
-            <h1 className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-stone-600 sm:text-[0.8125rem]">
+            <h1 className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-white/90 sm:text-[0.8125rem]">
               අදහස් දැක්වීම · Feedback
             </h1>
-            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-stone-600">
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-white/75">
               Share a moment—we read every note with care.
             </p>
           </motion.header>
@@ -358,10 +358,10 @@ export default function HomePage() {
                               setRating(n);
                               setShowRatingHint(false);
                             }}
-                            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-semibold shadow-sm backdrop-blur-sm transition active:scale-[0.97] sm:h-12 sm:w-12 ${
+                            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-semibold shadow-sm transition active:scale-[0.97] sm:h-12 sm:w-12 ${
                               rating === n
-                                ? "border-amber-500/90 bg-gradient-to-b from-amber-50 to-orange-50/95 text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_4px_16px_-4px_rgba(217,119,6,0.4)]"
-                                : "border-white/60 bg-white/45 text-stone-600 hover:border-amber-300/80 hover:bg-white/60 hover:shadow-md"
+                                ? "border-[#e3d500] bg-gradient-to-b from-[#fffde0] to-[#fcee21] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_5px_18px_-4px_rgba(252,238,33,0.7)]"
+                                : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#e3d500]/70 hover:bg-[#fffde0] hover:shadow-md"
                             }`}
                           >
                             {n}
@@ -377,7 +377,7 @@ export default function HomePage() {
 
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
-                        <Layers className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <Layers className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
                         <span>නිෂ්පාදන ගණය / PRODUCT CATEGORY (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Product category">
@@ -398,7 +398,7 @@ export default function HomePage() {
 
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
-                        <UtensilsCrossed className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <UtensilsCrossed className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
                         <span>සේවා වර්ගය / SERVICE TYPE (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Service type">
@@ -419,7 +419,7 @@ export default function HomePage() {
 
                     <motion.div variants={staggerItem} className="w-full space-y-3">
                       <p className={labelClass}>
-                        <Sparkles className="size-3.5 shrink-0 text-amber-800/90" strokeWidth={2} aria-hidden />
+                        <Sparkles className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
                         <span>කෙටි සටහන් / QUICK TAGS (OPTIONAL)</span>
                       </p>
                       <div className="flex flex-wrap justify-center gap-2" aria-label="Quick tags">
@@ -500,7 +500,7 @@ export default function HomePage() {
                           type="submit"
                           disabled={isSubmitting}
                           aria-busy={isSubmitting}
-                          className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-amber-900 via-amber-800 to-orange-800 px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(120,53,15,0.5),inset_0_1px_0_rgba(255,255,255,0.18)] transition hover:brightness-[1.06] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
+                          className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
                         >
                           <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
                           {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
@@ -545,7 +545,7 @@ export default function HomePage() {
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
                   className="py-4 text-center"
                 >
-                  <p className="font-peoples-bakers-display text-2xl font-semibold tracking-wide text-[#3d2f24]">
+                  <p className="font-peoples-bakers-display text-2xl font-semibold tracking-wide text-[#5b1259]">
                     ස්තුතියි · Thank you
                   </p>
                   <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-stone-600">
@@ -566,7 +566,7 @@ export default function HomePage() {
                     onClick={reset}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="mt-6 rounded-2xl border border-white/55 bg-white/50 px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-stone-800 shadow-[0_6px_24px_-8px_rgba(61,47,36,0.18)] backdrop-blur-md transition hover:bg-white/70"
+                    className="mt-6 rounded-2xl border border-[#902391]/25 bg-[#faf0fa] px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#5b1259] shadow-[0_6px_24px_-8px_rgba(92,20,96,0.25)] transition hover:bg-[#f3dcf3]"
                   >
                     නැවත යොමු කරන්න · Send another
                   </motion.button>
@@ -579,7 +579,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.4 }}
-            className="mt-10 font-peoples-bakers-display text-[0.625rem] uppercase tracking-[0.42em] text-stone-500"
+            className="mt-10 font-peoples-bakers-display text-[0.625rem] uppercase tracking-[0.42em] text-white/65"
           >
             Peoples Bakers
           </motion.p>
