@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
+  CheckCircle2,
   Layers,
   MessageSquare,
-  Phone as PhoneIcon,
   Send,
   Sparkles,
   Star,
@@ -86,17 +86,36 @@ const staggerItem = {
   },
 };
 
-/** Centered card — clean white over the brand-purple backdrop.
- *  No backdrop-blur: it is very expensive on mobile GPUs and the card is
- *  nearly opaque anyway. */
+/** Centered card — clean white over the brand-purple backdrop. */
 const glassPanel =
-  "relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.97] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] ring-1 ring-white/60 sm:p-9";
+  "pb-card-shine relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.97] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] ring-1 ring-white/60 sm:p-9";
 
 const fieldClass =
-  "mx-auto w-full max-w-sm rounded-xl border border-stone-200 bg-stone-50/80 px-3.5 py-2.5 text-center text-base leading-snug text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
+  "w-full rounded-xl border border-stone-200 bg-stone-50/80 px-3.5 py-2.5 text-base leading-snug text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
 
 const labelClass =
   "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-[#6d1b6c]";
+
+/** Soft nested section card — grouped modern layout */
+const sectionCard =
+  "w-full space-y-3 rounded-2xl border border-[#902391]/10 bg-gradient-to-b from-white to-[#fbf6fb] p-4 shadow-[0_2px_14px_-8px_rgba(92,20,96,0.18)] sm:p-5";
+
+function SectionLabel({
+  icon: Icon,
+  children,
+}: {
+  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
+  children: ReactNode;
+}) {
+  return (
+    <p className={labelClass}>
+      <span className="flex size-6 items-center justify-center rounded-lg bg-[#902391]/10">
+        <Icon className="size-3.5 shrink-0 text-[#902391]" strokeWidth={2} aria-hidden />
+      </span>
+      <span>{children}</span>
+    </p>
+  );
+}
 
 /** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
 const ITEM_CATEGORY_OPTIONS = ["Bakery", "Pastry", "Cake"] as const;
@@ -303,6 +322,19 @@ export default function HomePage() {
     );
   }
 
+  const completionPercent = useMemo(() => {
+    const parts = [
+      rating !== null,
+      itemCategory !== "",
+      serviceType !== "",
+      quickTags.length > 0,
+      name.trim() !== "",
+      phone.trim() !== "",
+      message.trim() !== "",
+    ];
+    return Math.round((parts.filter(Boolean).length / parts.length) * 100);
+  }, [rating, itemCategory, serviceType, quickTags, name, phone, message]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (rating === null) {
@@ -390,7 +422,7 @@ export default function HomePage() {
           className="pb-blob-b pointer-events-none absolute -right-20 bottom-24 hidden h-80 w-80 rounded-full bg-white/12 blur-3xl sm:block"
           aria-hidden
         />
-        <div className="relative mx-auto flex w-full max-w-md flex-col items-center text-center">
+        <div className="relative mx-auto flex w-full max-w-lg flex-col items-center text-center">
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -403,7 +435,8 @@ export default function HomePage() {
             <p className="mt-2 font-peoples-bakers-display text-sm font-medium italic tracking-wide text-[#fcee21]/95 sm:text-base">
               Artisan warmth, every day
             </p>
-            <h1 className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-white/90 sm:text-[0.8125rem]">
+            <h1 className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#fcee21]/45 bg-white/10 px-5 py-1.5 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-[0_4px_18px_-6px_rgba(30,6,32,0.5)] sm:text-[0.8125rem]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#fcee21]" aria-hidden />
               අදහස් දැක්වීම · Feedback
             </h1>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-white/75">
@@ -456,11 +489,35 @@ export default function HomePage() {
                       </p>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="w-full space-y-3">
-                      <p className={labelClass}>
-                        <Star className="size-3.5 shrink-0 fill-amber-400/90 text-amber-600/90" strokeWidth={2} aria-hidden />
-                        <span>තක්සේරුව / Rating</span>
-                      </p>
+                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-1.5">
+                      <div className="flex items-center justify-between px-0.5">
+                        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-stone-400">
+                          ප්‍රගතිය · Progress
+                        </span>
+                        <span
+                          className={`text-[0.6875rem] font-bold tabular-nums ${
+                            completionPercent === 100 ? "text-[#16a34a]" : "text-[#7a1f79]"
+                          }`}
+                        >
+                          {completionPercent}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100 shadow-inner">
+                        <motion.div
+                          className={`h-full rounded-full ${
+                            completionPercent === 100
+                              ? "bg-gradient-to-r from-[#22c55e] to-[#16a34a]"
+                              : "bg-gradient-to-r from-[#fcee21] via-[#f5c518] to-[#902391]"
+                          }`}
+                          initial={false}
+                          animate={{ width: `${Math.max(completionPercent, 3)}%` }}
+                          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
+                        />
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className={sectionCard}>
+                      <SectionLabel icon={Star}>තක්සේරුව / Rating</SectionLabel>
                       <InteractiveRatingFace rating={rating} />
                       <StarRating
                         rating={rating}
@@ -476,11 +533,8 @@ export default function HomePage() {
                       ) : null}
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="w-full space-y-3">
-                      <p className={labelClass}>
-                        <Layers className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
-                        <span>නිෂ්පාදන ගණය / PRODUCT CATEGORY (OPTIONAL)</span>
-                      </p>
+                    <motion.div variants={staggerItem} className={sectionCard}>
+                      <SectionLabel icon={Layers}>නිෂ්පාදන ගණය / Product category (optional)</SectionLabel>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Product category">
                         {ITEM_CATEGORY_OPTIONS.map((opt) => (
                           <button
@@ -498,11 +552,8 @@ export default function HomePage() {
                       </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="w-full space-y-3">
-                      <p className={labelClass}>
-                        <UtensilsCrossed className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
-                        <span>සේවා වර්ගය / SERVICE TYPE (OPTIONAL)</span>
-                      </p>
+                    <motion.div variants={staggerItem} className={sectionCard}>
+                      <SectionLabel icon={UtensilsCrossed}>සේවා වර්ගය / Service type (optional)</SectionLabel>
                       <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Service type">
                         {SERVICE_TYPE_OPTIONS.map((opt) => (
                           <button
@@ -520,11 +571,8 @@ export default function HomePage() {
                       </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="w-full space-y-3">
-                      <p className={labelClass}>
-                        <Sparkles className="size-3.5 shrink-0 text-[#902391]/85" strokeWidth={2} aria-hidden />
-                        <span>කෙටි සටහන් / QUICK TAGS (OPTIONAL)</span>
-                      </p>
+                    <motion.div variants={staggerItem} className={sectionCard}>
+                      <SectionLabel icon={Sparkles}>කෙටි සටහන් / Quick tags (optional)</SectionLabel>
                       <div className="flex flex-wrap justify-center gap-2" aria-label="Quick tags">
                         {QUICK_TAG_LABELS.map((tag) => {
                           const on = quickTags.includes(tag);
@@ -544,96 +592,105 @@ export default function HomePage() {
                       </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
-                      <label htmlFor="customer-name" className={labelClass}>
-                        <User className="size-3.5 shrink-0 text-[#7a1f79] opacity-[0.85]" strokeWidth={2} aria-hidden />
-                        <span>Your Name (Optional)</span>
-                      </label>
-                      <input
-                        id="customer-name"
-                        name="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your name (or leave blank to stay anonymous)"
-                        autoComplete="name"
-                        maxLength={120}
-                        className={fieldClass}
-                      />
-                    </motion.div>
-
-                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
-                      <label htmlFor="customer-phone" className={labelClass}>
-                        <PhoneIcon className="size-3.5 shrink-0 text-[#7a1f79] opacity-[0.85]" strokeWidth={2} aria-hidden />
-                        <span>Phone (optional)</span>
-                      </label>
-                      <input
-                        id="customer-phone"
-                        name="phone_number"
-                        type="tel"
-                        inputMode="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="e.g. 077 123 4567"
-                        autoComplete="tel"
-                        maxLength={32}
-                        className={fieldClass}
-                      />
-                    </motion.div>
-
-                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-2">
-                      <label htmlFor="message" className={labelClass}>
-                        <MessageSquare className="size-3.5 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
-                        <span>පණිවිඩය / Message</span>
-                      </label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        rows={4}
-                        value={message}
-                        maxLength={500}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Pastries, staff, favourites…"
-                        className={`${fieldClass} resize-none py-3 placeholder:text-xs`}
-                      />
-                      <p
-                        className={`text-right text-[0.625rem] tabular-nums ${
-                          message.length >= 450 ? "font-semibold text-[#902391]" : "text-stone-400"
-                        }`}
-                        aria-hidden
-                      >
-                        {message.length}/500
-                      </p>
-                    </motion.div>
-
-                    <motion.div variants={staggerItem} className="w-full max-w-sm space-y-3 pt-1">
-                      <input type="hidden" name="rating" value={rating ?? ""} />
-                      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          aria-busy={isSubmitting}
-                          className="pb-shimmer flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
+                    <motion.div variants={staggerItem} className={`${sectionCard} space-y-4`}>
+                      <SectionLabel icon={User}>ඔබ ගැන / Your details (optional)</SectionLabel>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label htmlFor="customer-name" className="block text-left text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                            Your name
+                          </label>
+                          <input
+                            id="customer-name"
+                            name="name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Anonymous is fine"
+                            autoComplete="name"
+                            maxLength={120}
+                            className={fieldClass}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="customer-phone" className="block text-left text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                            Phone
+                          </label>
+                          <input
+                            id="customer-phone"
+                            name="phone_number"
+                            type="tel"
+                            inputMode="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="e.g. 077 123 4567"
+                            autoComplete="tel"
+                            maxLength={32}
+                            className={fieldClass}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="message" className="flex items-center gap-2 text-left text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                          <MessageSquare className="size-3 shrink-0 text-[#902391]/70" strokeWidth={2} aria-hidden />
+                          පණිවිඩය / Message
+                        </label>
+                        <textarea
+                          id="message"
+                          name="message"
+                          rows={4}
+                          value={message}
+                          maxLength={500}
+                          onChange={(e) => setMessage(e.target.value)}
+                          placeholder="Pastries, staff, favourites…"
+                          className={`${fieldClass} resize-none py-3 placeholder:text-xs`}
+                        />
+                        <p
+                          className={`text-right text-[0.625rem] tabular-nums ${
+                            message.length >= 450 ? "font-semibold text-[#902391]" : "text-stone-400"
+                          }`}
+                          aria-hidden
                         >
-                          <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
-                          {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
-                        </button>
+                          {message.length}/500
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className="w-full space-y-3 pt-1">
+                      <input type="hidden" name="rating" value={rating ?? ""} />
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        aria-busy={isSubmitting}
+                        className="pb-shimmer flex min-h-[3.5rem] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-5 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
+                      >
+                        <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
+                        {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
+                      </button>
+
+                      <div className="relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-[0_8px_28px_-12px_rgba(16,185,129,0.45)]">
+                        <div className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-emerald-200/40 blur-2xl" aria-hidden />
+                        <p className="text-center text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-emerald-700/80">
+                          හෝ WhatsApp එකෙන් · Or via WhatsApp
+                        </p>
                         <a
                           href={WHATSAPP_CHAT_URL}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="pb-whatsapp-premium flex min-h-[3.25rem] flex-1 flex-row items-center justify-center gap-2.5 rounded-2xl px-4 py-3 text-white ring-2 ring-white/50 transition hover:brightness-110 active:scale-[0.99] sm:flex-col sm:justify-center sm:gap-2 sm:py-3.5"
+                          className="pb-whatsapp-premium mt-3 flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-white transition hover:brightness-110 active:scale-[0.99]"
                           aria-label={`WhatsApp feedback — ${WHATSAPP_PHONE_DISPLAY}`}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/10 shadow-inner ring-1 ring-white/35 sm:h-11 sm:w-11">
-                            <WhatsAppGlyph className="h-5 w-5 sm:h-6 sm:w-6" />
+                          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-black/10 shadow-inner ring-1 ring-white/35">
+                            <WhatsAppGlyph className="size-6" />
                           </span>
-                          <span className="min-w-0 flex-1 text-left sm:flex-none sm:text-center">
-                            <span className="block text-[0.7rem] font-bold uppercase leading-snug tracking-wide sm:text-xs">
-                              Feedback on WhatsApp
+                          <span className="min-w-0 flex-1 text-left">
+                            <span className="block text-xs font-bold uppercase tracking-wide">
+                              Message us on WhatsApp
                             </span>
-                            <span className="mt-0.5 block font-mono text-[0.65rem] font-semibold text-white/95 tabular-nums sm:text-xs">
+                            <span className="mt-0.5 block font-mono text-base font-bold tabular-nums tracking-wide">
                               {WHATSAPP_PHONE_DISPLAY}
+                            </span>
+                            <span className="mt-0.5 block text-[0.65rem] font-medium text-white/85">
+                              ප්‍රතිචාරය එවීමට tap කරන්න
                             </span>
                           </span>
                         </a>
@@ -656,24 +713,29 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
-                  className="py-4 text-center"
+                  className="py-6 text-center"
                 >
-                  <p className="font-peoples-bakers-display text-2xl font-semibold tracking-wide text-[#5b1259]">
+                  <div className="pb-success-badge mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-[#faf0fa] to-[#f3dcf3] shadow-[0_8px_28px_-8px_rgba(144,35,145,0.5)] ring-4 ring-[#fcee21]/60">
+                    <CheckCircle2 className="size-9 text-[#902391]" strokeWidth={2} aria-hidden />
+                  </div>
+                  <p className="mt-5 font-peoples-bakers-display text-2xl font-semibold tracking-wide text-[#5b1259]">
                     ස්තුතියි · Thank you
                   </p>
                   <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-stone-600">
                     We received your feedback with gratitude.
                   </p>
-                  <a
-                    href={WHATSAPP_CHAT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pb-whatsapp-premium mx-auto mt-6 flex min-h-[3.25rem] w-full max-w-sm items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold uppercase tracking-[0.1em] text-white ring-2 ring-white/50 transition hover:brightness-110 active:scale-[0.99]"
-                    aria-label={`WhatsApp — ${WHATSAPP_PHONE_DISPLAY}`}
-                  >
-                    <WhatsAppGlyph className="h-5 w-5 shrink-0" />
-                    WhatsApp · {WHATSAPP_PHONE_DISPLAY}
-                  </a>
+                  <div className="mx-auto mt-6 max-w-sm overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-white p-4">
+                    <a
+                      href={WHATSAPP_CHAT_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="pb-whatsapp-premium flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.08em] text-white transition hover:brightness-110 active:scale-[0.99]"
+                      aria-label={`WhatsApp — ${WHATSAPP_PHONE_DISPLAY}`}
+                    >
+                      <WhatsAppGlyph className="size-5 shrink-0" />
+                      WhatsApp · {WHATSAPP_PHONE_DISPLAY}
+                    </a>
+                  </div>
                   <motion.button
                     type="button"
                     onClick={reset}
