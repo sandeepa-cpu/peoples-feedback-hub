@@ -108,20 +108,58 @@ body {
   pointer-events: none;
 }
 
-/* Soft card shine — top edge highlight */
+/* Soft card shine — gentle top highlight only */
 .pb-card-shine::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 40%;
+  height: 28%;
   border-radius: inherit;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.08) 55%,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(252, 238, 33, 0.04) 40%,
     transparent 100%
   );
   pointer-events: none;
+  z-index: 0;
+}
+
+/* Form card — soft lavender pattern instead of flat white */
+.pb-form-pattern {
+  background-color: #faf4fa;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(252, 238, 33, 0.09), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 85% 75%, rgba(144, 35, 145, 0.07), transparent 48%),
+    radial-gradient(ellipse 55% 40% at 50% 42%, rgba(243, 220, 243, 0.45) 0%, transparent 68%),
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 28px,
+      rgba(144, 35, 145, 0.025) 28px,
+      rgba(144, 35, 145, 0.025) 29px
+    ),
+    repeating-linear-gradient(
+      78deg,
+      transparent,
+      transparent 32px,
+      rgba(252, 238, 33, 0.03) 32px,
+      rgba(252, 238, 33, 0.03) 33px
+    ),
+    linear-gradient(168deg, #fefcff 0%, #faf0fa 38%, #f4e2f4 72%, #f0daf0 100%);
+}
+
+/* Section blocks inside the form */
+.pb-section-pattern {
+  background-color: rgba(255, 255, 255, 0.55);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(252, 238, 33, 0.06), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(144, 35, 145, 0.05), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(251, 246, 251, 0.85) 100%);
+}
+
+.font-peoples-bakers-display {
+  font-family: var(--font-peoples-bakers), ui-serif, Georgia, serif;
 }
 
 @keyframes pb-success-pop {
@@ -141,10 +179,6 @@ body {
 
 .pb-success-badge {
   animation: pb-success-pop 0.55s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
-}
-
-.font-peoples-bakers-display {
-  font-family: var(--font-peoples-bakers), ui-serif, Georgia, serif;
 }
 
 @keyframes pb-submit-success-glow {

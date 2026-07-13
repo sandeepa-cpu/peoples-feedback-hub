@@ -86,19 +86,19 @@ const staggerItem = {
   },
 };
 
-/** Centered card — clean white over the brand-purple backdrop. */
+/** Form card — lavender pattern, not flat white */
 const glassPanel =
-  "pb-card-shine relative w-full rounded-[1.875rem] border border-white/70 bg-white/[0.97] p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.95)] ring-1 ring-white/60 sm:p-9";
+  "pb-card-shine pb-form-pattern relative w-full rounded-[1.875rem] border border-[#902391]/15 p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.6)] ring-1 ring-[#fcee21]/25 sm:p-9";
 
 const fieldClass =
-  "w-full rounded-xl border border-stone-200 bg-stone-50/80 px-3.5 py-2.5 text-base leading-snug text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
+  "w-full rounded-xl border border-[#902391]/12 bg-white/75 px-3.5 py-2.5 text-base leading-snug text-stone-900 shadow-[inset_0_1px_3px_rgba(144,35,145,0.06)] outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
 
 const labelClass =
   "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-[#6d1b6c]";
 
-/** Soft nested section card — grouped modern layout */
+/** Section blocks — semi-transparent over the card pattern */
 const sectionCard =
-  "w-full space-y-3 rounded-2xl border border-[#902391]/10 bg-gradient-to-b from-white to-[#fbf6fb] p-4 shadow-[0_2px_14px_-8px_rgba(92,20,96,0.18)] sm:p-5";
+  "pb-section-pattern w-full space-y-3 rounded-2xl border border-[#902391]/12 p-4 shadow-[0_2px_14px_-8px_rgba(92,20,96,0.15)] backdrop-blur-[2px] sm:p-5";
 
 function SectionLabel({
   icon: Icon,
@@ -284,7 +284,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 
   return (
     <div
-      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-[#902391]/15 bg-gradient-to-b from-[#fbf5fb] to-[#f6e9f6] px-4 py-3 shadow-inner"
+      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-[#902391]/18 bg-white/40 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
       aria-hidden
     >
       <motion.span
@@ -463,13 +463,13 @@ export default function HomePage() {
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.25 }}
                   onSubmit={handleSubmit}
-                  className="flex w-full flex-col items-center gap-6"
+                  className="relative z-[1] flex w-full flex-col items-center gap-6"
                 >
                   <motion.div
                     variants={staggerParent}
                     initial="hidden"
                     animate="visible"
-                    className="flex w-full flex-col items-center gap-6"
+                    className="relative z-[1] flex w-full flex-col items-center gap-6"
                   >
                     <motion.div variants={staggerItem} className="flex flex-col items-center">
                       <div
