@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Check,
   Layers,
   MessageSquare,
   Phone as PhoneIcon,
@@ -21,14 +22,13 @@ import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 async function launchFullScreenConfetti() {
   const { default: confetti } = await import("canvas-confetti");
   const colors = [
-    "#fde68a",
-    "#fbbf24",
-    "#f97316",
-    "#fecdd3",
-    "#fda4af",
+    "#fcee21",
+    "#fff9a8",
+    "#ffd43b",
+    "#902391",
+    "#c26cc1",
+    "#f5d0f5",
     "#ffffff",
-    "#fcd34d",
-    "#fdba74",
   ];
   const base = {
     zIndex: 99999,
@@ -107,11 +107,112 @@ const QUICK_TAG_LABELS = [
 ] as const;
 
 function choiceChipClass(active: boolean) {
-  return `max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
+  return `relative max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
     active
       ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
       : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
   } rounded-xl border shadow-sm`;
+}
+
+function ChipCheckBadge({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <motion.span
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.22, ease: [0.34, 1.45, 0.64, 1] as const }}
+      className="absolute -right-1.5 -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#902391] shadow-md ring-2 ring-white"
+      aria-hidden
+    >
+      <Check className="size-2.5 text-[#fcee21]" strokeWidth={3.5} />
+    </motion.span>
+  );
+}
+
+const RATING_WORDS: Record<number, string> = {
+  1: "දුර්වලයි · Poor",
+  2: "සාමාන්‍යයි · Fair",
+  3: "හොඳයි · Good",
+  4: "ඉතා හොඳයි · Very good",
+  5: "විශිෂ්ටයි · Excellent",
+};
+
+function StarRating({
+  rating,
+  onSelect,
+}: {
+  rating: number | null;
+  onSelect: (n: number) => void;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const activeUpTo = hovered ?? rating ?? 0;
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="flex items-center justify-center gap-1.5 sm:gap-2"
+        role="radiogroup"
+        aria-label="Rating"
+        onMouseLeave={() => setHovered(null)}
+      >
+        {[1, 2, 3, 4, 5].map((n) => {
+          const filled = n <= activeUpTo;
+          return (
+            <motion.button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={rating === n}
+              aria-label={`${n} star${n > 1 ? "s" : ""}`}
+              onMouseEnter={() => setHovered(n)}
+              onFocus={() => setHovered(n)}
+              onBlur={() => setHovered(null)}
+              onClick={() => onSelect(n)}
+              whileTap={{ scale: 0.82 }}
+              animate={rating === n ? { scale: [1, 1.28, 1] } : { scale: 1 }}
+              transition={{ duration: 0.34, ease: [0.34, 1.45, 0.64, 1] as const }}
+              className="rounded-xl p-1 outline-none transition focus-visible:ring-2 focus-visible:ring-[#902391]/50 sm:p-1.5"
+            >
+              <Star
+                strokeWidth={1.6}
+                className={`size-9 transition-all duration-150 sm:size-10 ${
+                  filled
+                    ? "fill-[#fcc419] text-[#e8a600] drop-shadow-[0_3px_8px_rgba(252,196,25,0.55)]"
+                    : "fill-stone-100 text-stone-300"
+                }`}
+              />
+            </motion.button>
+          );
+        })}
+      </div>
+      <div className="flex min-h-[1.25rem] items-center justify-center">
+        <AnimatePresence mode="wait">
+          {activeUpTo > 0 ? (
+            <motion.span
+              key={activeUpTo}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.16 }}
+              className="text-xs font-semibold tracking-wide text-[#7a1f79]"
+            >
+              {RATING_WORDS[activeUpTo]}
+            </motion.span>
+          ) : (
+            <motion.span
+              key="hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400"
+            >
+              තරු ඔබන්න · Tap the stars
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }
 
 function InteractiveRatingFace({ rating }: { rating: number | null }) {
@@ -276,9 +377,17 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
-        className="pb-bakery-bg flex min-h-screen w-full flex-col items-center justify-center px-4 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px)+1.25rem)] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-12"
+        className="pb-bakery-bg relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px)+1.25rem)] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-12"
       >
-        <div className="mx-auto flex w-full max-w-md flex-col items-center text-center">
+        <div
+          className="pb-blob-a pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-[#fcee21]/14 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pb-blob-b pointer-events-none absolute -right-20 bottom-24 h-80 w-80 rounded-full bg-white/12 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative mx-auto flex w-full max-w-md flex-col items-center text-center">
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -304,8 +413,12 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`mt-8 w-full ${glassPanel}`}
+            className={`mt-8 w-full overflow-hidden ${glassPanel}`}
           >
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#fcee21] via-[#f5c518] to-[#902391]"
+              aria-hidden
+            />
             <AnimatePresence mode="wait" initial={false}>
               {!submitted ? (
                 <motion.form
@@ -347,27 +460,13 @@ export default function HomePage() {
                         <span>තක්සේරුව / Rating</span>
                       </p>
                       <InteractiveRatingFace rating={rating} />
-                      <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Rating">
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <button
-                            key={n}
-                            type="button"
-                            aria-checked={rating === n}
-                            role="radio"
-                            onClick={() => {
-                              setRating(n);
-                              setShowRatingHint(false);
-                            }}
-                            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-semibold shadow-sm transition active:scale-[0.97] sm:h-12 sm:w-12 ${
-                              rating === n
-                                ? "border-[#e3d500] bg-gradient-to-b from-[#fffde0] to-[#fcee21] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_5px_18px_-4px_rgba(252,238,33,0.7)]"
-                                : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#e3d500]/70 hover:bg-[#fffde0] hover:shadow-md"
-                            }`}
-                          >
-                            {n}
-                          </button>
-                        ))}
-                      </div>
+                      <StarRating
+                        rating={rating}
+                        onSelect={(n) => {
+                          setRating(n);
+                          setShowRatingHint(false);
+                        }}
+                      />
                       {showRatingHint ? (
                         <p className="text-center text-xs font-medium text-red-600" role="alert">
                           තක්සේරුවක් තෝරන්න / Pick a rating
@@ -391,6 +490,7 @@ export default function HomePage() {
                             className={choiceChipClass(itemCategory === opt)}
                           >
                             {opt}
+                            <ChipCheckBadge visible={itemCategory === opt} />
                           </button>
                         ))}
                       </div>
@@ -412,6 +512,7 @@ export default function HomePage() {
                             className={choiceChipClass(serviceType === opt)}
                           >
                             {opt}
+                            <ChipCheckBadge visible={serviceType === opt} />
                           </button>
                         ))}
                       </div>
@@ -434,6 +535,7 @@ export default function HomePage() {
                               className={choiceChipClass(on)}
                             >
                               {tag}
+                              <ChipCheckBadge visible={on} />
                             </button>
                           );
                         })}
@@ -487,10 +589,19 @@ export default function HomePage() {
                         name="message"
                         rows={4}
                         value={message}
+                        maxLength={500}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Pastries, staff, favourites…"
                         className={`${fieldClass} resize-none py-3 placeholder:text-xs`}
                       />
+                      <p
+                        className={`text-right text-[0.625rem] tabular-nums ${
+                          message.length >= 450 ? "font-semibold text-[#902391]" : "text-stone-400"
+                        }`}
+                        aria-hidden
+                      >
+                        {message.length}/500
+                      </p>
                     </motion.div>
 
                     <motion.div variants={staggerItem} className="w-full max-w-sm space-y-3 pt-1">
@@ -500,7 +611,7 @@ export default function HomePage() {
                           type="submit"
                           disabled={isSubmitting}
                           aria-busy={isSubmitting}
-                          className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
+                          className="pb-shimmer flex min-h-[3.25rem] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
                         >
                           <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
                           {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
