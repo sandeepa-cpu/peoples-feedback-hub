@@ -866,18 +866,21 @@ export default function AdminDashboardClient() {
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search name, comment, phone, category…"
+                  placeholder="Search name, shop, comment, phone…"
                   className="w-full rounded-xl border border-stone-200 bg-stone-50/80 py-2.5 pl-10 pr-4 text-sm text-stone-900 shadow-inner outline-none transition placeholder:text-stone-400 focus:border-[#902391]/40 focus:bg-white focus:ring-4 focus:ring-purple-950/10"
                 />
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[56rem] text-left">
+              <table className="w-full min-w-[64rem] text-left">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-50/90">
                     <th scope="col" className="min-w-[11rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
                       Customer
+                    </th>
+                    <th scope="col" className="min-w-[8.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Shop
                     </th>
                     <th scope="col" className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
                       Rating
@@ -896,7 +899,7 @@ export default function AdminDashboardClient() {
                 <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-20 text-center text-stone-500">
+                      <td colSpan={6} className="px-6 py-20 text-center text-stone-500">
                         <span className="inline-flex items-center gap-3 text-base font-semibold">
                           <Loader2 className="h-6 w-6 animate-spin" style={{ color: PURPLE_DEEP }} aria-hidden />
                           Loading feedback…
@@ -906,7 +909,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-16 text-center">
+                      <td colSpan={6} className="px-6 py-16 text-center">
                         <Inbox className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No feedback yet. Invite customers from the homepage form.
@@ -916,7 +919,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length > 0 && filteredRows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-16 text-center">
+                      <td colSpan={6} className="px-6 py-16 text-center">
                         <Search className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No results for this search or filter.
@@ -936,7 +939,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && loadError ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-14 text-center text-sm text-stone-500">
+                      <td colSpan={6} className="px-6 py-14 text-center text-sm text-stone-500">
                         Rows could not be loaded — see the notice above for details.
                       </td>
                     </tr>
@@ -980,6 +983,17 @@ export default function AdminDashboardClient() {
                               </div>
                             </div>
                           </td>
+                          {/* Shop */}
+                          <td className="px-6 py-4">
+                            {shopText ? (
+                              <span className="inline-flex max-w-[9rem] items-start gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-2.5 py-2 text-xs font-bold leading-snug text-violet-950">
+                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden strokeWidth={2} />
+                                <span className="break-words">{shopText}</span>
+                              </span>
+                            ) : (
+                              <span className="text-xs italic text-gray-400">—</span>
+                            )}
+                          </td>
                           {/* Rating */}
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1.5">
@@ -994,12 +1008,6 @@ export default function AdminDashboardClient() {
                           {/* Details: category, service, tags */}
                           <td className="px-6 py-4">
                             <div className="flex max-w-[13rem] flex-wrap gap-1.5">
-                              {shopText ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-900">
-                                  <MapPin className="h-3 w-3" aria-hidden strokeWidth={2} />
-                                  {shopText}
-                                </span>
-                              ) : null}
                               {categoryText ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-900">
                                   <UtensilsCrossed className="h-3 w-3" aria-hidden strokeWidth={2} />
@@ -1027,7 +1035,7 @@ export default function AdminDashboardClient() {
                                     )
                                   })
                                 : null}
-                              {!shopText && !categoryText && !serviceText && !tagsText ? (
+                              {!categoryText && !serviceText && !tagsText ? (
                                 <span className="text-xs italic text-gray-400">—</span>
                               ) : null}
                             </div>

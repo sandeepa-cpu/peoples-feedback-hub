@@ -142,10 +142,10 @@ const QUICK_TAG_LABELS = [
 ] as const;
 
 function shopChipClass(active: boolean) {
-  return `relative min-w-[4.75rem] flex-1 px-2 py-2 text-center text-[0.6rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:min-w-[5.25rem] sm:px-2.5 sm:text-[0.65rem] ${
+  return `relative w-full px-2.5 py-2.5 text-center text-[0.7rem] font-semibold normal-case leading-snug tracking-normal transition active:scale-[0.98] sm:px-3 sm:py-3 sm:text-[0.75rem] ${
     active
       ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
-      : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
+      : "border-stone-200 bg-white/80 text-stone-700 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
   } rounded-xl border shadow-sm`;
 }
 
@@ -562,7 +562,11 @@ export default function HomePage() {
 
                     <motion.div variants={staggerItem} className={sectionCard}>
                       <SectionLabel icon={MapPin}>ශාඛාව / Shop location (optional)</SectionLabel>
-                      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2" role="radiogroup" aria-label="Shop location">
+                      <div
+                        className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3"
+                        role="radiogroup"
+                        aria-label="Shop location"
+                      >
                         {SHOP_LOCATIONS.map((shop) => (
                           <button
                             key={shop}
