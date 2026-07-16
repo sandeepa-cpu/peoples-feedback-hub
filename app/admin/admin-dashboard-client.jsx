@@ -12,6 +12,7 @@ import {
   Lock,
   LogOut,
   Mail,
+  MapPin,
   MessageSquareQuote,
   Phone,
   RefreshCw,
@@ -333,7 +334,7 @@ export default function AdminDashboardClient() {
         if (Math.round(clampRating(Number.isFinite(r) ? r : 0)) !== ratingFilter) return false
       }
       if (!q) return true
-      const hay = [row.name, row.message, row.phone_number, row.item_category, row.service_type, row.quick_tags]
+      const hay = [row.name, row.message, row.phone_number, row.shop_location, row.item_category, row.service_type, row.quick_tags]
         .map((v) => (v == null ? '' : String(v).toLowerCase()))
         .join(' ')
       return hay.includes(q)
@@ -951,6 +952,7 @@ export default function AdminDashboardClient() {
                       const phoneText = displayTextField(row.phone_number)
                       const categoryText = displayTextField(row.item_category)
                       const serviceText = displayTextField(row.service_type)
+                      const shopText = displayTextField(row.shop_location)
                       const tagsText = displayTextField(row.quick_tags)
                       return (
                         <tr key={row.id} className="align-top transition-colors hover:bg-purple-500/[0.04] even:bg-stone-50/40">
@@ -992,6 +994,12 @@ export default function AdminDashboardClient() {
                           {/* Details: category, service, tags */}
                           <td className="px-6 py-4">
                             <div className="flex max-w-[13rem] flex-wrap gap-1.5">
+                              {shopText ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-900">
+                                  <MapPin className="h-3 w-3" aria-hidden strokeWidth={2} />
+                                  {shopText}
+                                </span>
+                              ) : null}
                               {categoryText ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-900">
                                   <UtensilsCrossed className="h-3 w-3" aria-hidden strokeWidth={2} />
@@ -1019,7 +1027,7 @@ export default function AdminDashboardClient() {
                                     )
                                   })
                                 : null}
-                              {!categoryText && !serviceText && !tagsText ? (
+                              {!shopText && !categoryText && !serviceText && !tagsText ? (
                                 <span className="text-xs italic text-gray-400">—</span>
                               ) : null}
                             </div>

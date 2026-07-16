@@ -9,6 +9,7 @@ create table if not exists public.feedbacks (
   phone_number text,
   item_category text,
   service_type text,
+  shop_location text,
   quick_tags text
 );
 
@@ -18,6 +19,7 @@ create table if not exists public.feedbacks (
 -- alter table public.feedbacks add column phone_number text;
 -- alter table public.feedbacks add column item_category text;
 -- alter table public.feedbacks add column service_type text;
+-- alter table public.feedbacks add column shop_location text;
 -- alter table public.feedbacks add column quick_tags text;
 
 alter table public.feedbacks enable row level security;

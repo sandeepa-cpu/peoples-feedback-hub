@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Layers,
+  MapPin,
   MessageSquare,
   Send,
   Sparkles,
@@ -118,6 +119,19 @@ function SectionLabel({
 }
 
 /** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
+const SHOP_LOCATIONS = [
+  "Bulathsinhala",
+  "Horana-02",
+  "Egaloya",
+  "Soyzapura",
+  "Kannanthudawa",
+  "Weththewa",
+  "Havelock",
+  "Govinna",
+  "Bandarawela",
+  "Boralesgamuwa",
+  "Eheliyagoda",
+] as const;
 const ITEM_CATEGORY_OPTIONS = ["Bakery", "Pastry", "Cake"] as const;
 const SERVICE_TYPE_OPTIONS = ["Dine-in", "Takeaway"] as const;
 const QUICK_TAG_LABELS = [
@@ -126,6 +140,14 @@ const QUICK_TAG_LABELS = [
   "Quick service",
   "Great value",
 ] as const;
+
+function shopChipClass(active: boolean) {
+  return `relative min-w-[4.75rem] flex-1 px-2 py-2 text-center text-[0.6rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:min-w-[5.25rem] sm:px-2.5 sm:text-[0.65rem] ${
+    active
+      ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
+      : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
+  } rounded-xl border shadow-sm`;
+}
 
 function choiceChipClass(active: boolean) {
   return `relative max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
@@ -305,6 +327,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 
 export default function HomePage() {
   const [rating, setRating] = useState<number | null>(null);
+  const [shopLocation, setShopLocation] = useState("");
   const [itemCategory, setItemCategory] = useState("");
   const [serviceType, setServiceType] = useState("");
   const [quickTags, setQuickTags] = useState<(typeof QUICK_TAG_LABELS)[number][]>([]);
@@ -325,6 +348,7 @@ export default function HomePage() {
   const completionPercent = useMemo(() => {
     const parts = [
       rating !== null,
+      shopLocation !== "",
       itemCategory !== "",
       serviceType !== "",
       quickTags.length > 0,
@@ -333,7 +357,7 @@ export default function HomePage() {
       message.trim() !== "",
     ];
     return Math.round((parts.filter(Boolean).length / parts.length) * 100);
-  }, [rating, itemCategory, serviceType, quickTags, name, phone, message]);
+  }, [rating, shopLocation, itemCategory, serviceType, quickTags, name, phone, message]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -352,6 +376,7 @@ export default function HomePage() {
     const phoneTrimmed = phone.trim();
     const categoryTrimmed = itemCategory.trim();
     const serviceTrimmed = serviceType.trim();
+    const shopTrimmed = shopLocation.trim();
     const messageTrimmed = message.trim();
     const tagLabelsSorted =
       quickTags.length > 0 ? [...quickTags].sort((a, b) => a.localeCompare(b)).join(", ") : null;
@@ -363,6 +388,7 @@ export default function HomePage() {
       phone_number: phoneTrimmed.length > 0 ? phoneTrimmed : null,
       item_category: categoryTrimmed.length > 0 ? categoryTrimmed : null,
       service_type: serviceTrimmed.length > 0 ? serviceTrimmed : null,
+      shop_location: shopTrimmed.length > 0 ? shopTrimmed : null,
       quick_tags: tagLabelsSorted,
     };
 
@@ -393,6 +419,7 @@ export default function HomePage() {
 
   function reset() {
     setRating(null);
+    setShopLocation("");
     setItemCategory("");
     setServiceType("");
     setQuickTags([]);
@@ -531,6 +558,25 @@ export default function HomePage() {
                           තක්සේරුවක් තෝරන්න / Pick a rating
                         </p>
                       ) : null}
+                    </motion.div>
+
+                    <motion.div variants={staggerItem} className={sectionCard}>
+                      <SectionLabel icon={MapPin}>ශාඛාව / Shop location (optional)</SectionLabel>
+                      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2" role="radiogroup" aria-label="Shop location">
+                        {SHOP_LOCATIONS.map((shop) => (
+                          <button
+                            key={shop}
+                            type="button"
+                            role="radio"
+                            aria-checked={shopLocation === shop}
+                            onClick={() => setShopLocation(shopLocation === shop ? "" : shop)}
+                            className={shopChipClass(shopLocation === shop)}
+                          >
+                            {shop}
+                            <ChipCheckBadge visible={shopLocation === shop} />
+                          </button>
+                        ))}
+                      </div>
                     </motion.div>
 
                     <motion.div variants={staggerItem} className={sectionCard}>
