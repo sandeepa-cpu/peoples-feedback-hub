@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -800,14 +801,22 @@ export default function HomePage() {
             </AnimatePresence>
           </motion.section>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25, duration: 0.3 }}
-            className="mt-10 font-peoples-bakers-display text-[0.625rem] uppercase tracking-[0.42em] text-white/65"
+            className="mt-10 flex flex-col items-center gap-2"
           >
-            Peoples Bakers
-          </motion.p>
+            <p className="font-peoples-bakers-display text-[0.625rem] uppercase tracking-[0.42em] text-white/65">
+              Peoples Bakers
+            </p>
+            <Link
+              href="/admin"
+              className="font-peoples-bakers-display text-[0.55rem] uppercase tracking-[0.32em] text-white/30 transition hover:text-white/55"
+            >
+              Admin
+            </Link>
+          </motion.div>
         </div>
       </motion.main>
     </>
