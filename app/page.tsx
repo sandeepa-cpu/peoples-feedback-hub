@@ -130,6 +130,7 @@ const SHOP_LOCATIONS = [
   "Havelock",
   "Govinna",
   "Bandarawela",
+  "Bimch",
   "Boralesgamuwa",
   "Eheliyagoda",
 ] as const;
