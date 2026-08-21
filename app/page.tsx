@@ -119,8 +119,12 @@ function SectionLabel({
   );
 }
 
+/** Featured shop — shown first with highlight; also in the list below. */
+const FEATURED_SHOP = "Bmich";
+
 /** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
 const SHOP_LOCATIONS = [
+  "Bmich",
   "Bulathsinhala",
   "Horana-02",
   "Egaloya",
@@ -130,7 +134,6 @@ const SHOP_LOCATIONS = [
   "Havelock",
   "Govinna",
   "Bandarawela",
-  "Bimch",
   "Boralesgamuwa",
   "Eheliyagoda",
 ] as const;
@@ -143,11 +146,19 @@ const QUICK_TAG_LABELS = [
   "Great value",
 ] as const;
 
-function shopChipClass(active: boolean) {
+function shopChipClass(active: boolean, featured = false) {
+  const featuredIdle =
+    "border-[#fcee21]/75 bg-gradient-to-b from-[#fffef5] to-[#fff9c4]/40 text-[#5b1259] shadow-[0_4px_18px_-6px_rgba(252,238,33,0.45)] ring-2 ring-[#fcee21]/50";
+  const featuredActive =
+    "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)] ring-2 ring-[#fcee21]/70";
   return `relative w-full px-2.5 py-2.5 text-center text-[0.7rem] font-semibold normal-case leading-snug tracking-normal transition active:scale-[0.98] sm:px-3 sm:py-3 sm:text-[0.75rem] ${
     active
-      ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
-      : "border-stone-200 bg-white/80 text-stone-700 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
+      ? featured
+        ? featuredActive
+        : "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
+      : featured
+        ? featuredIdle
+        : "border-stone-200 bg-white/80 text-stone-700 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
   } rounded-xl border shadow-sm`;
 }
 
@@ -569,19 +580,22 @@ export default function HomePage() {
                         role="radiogroup"
                         aria-label="Shop location"
                       >
-                        {SHOP_LOCATIONS.map((shop) => (
+                        {SHOP_LOCATIONS.map((shop) => {
+                          const featured = shop === FEATURED_SHOP;
+                          return (
                           <button
                             key={shop}
                             type="button"
                             role="radio"
                             aria-checked={shopLocation === shop}
                             onClick={() => setShopLocation(shopLocation === shop ? "" : shop)}
-                            className={shopChipClass(shopLocation === shop)}
+                            className={`${shopChipClass(shopLocation === shop, featured)}${featured ? " col-span-2 sm:col-span-3" : ""}`}
                           >
                             {shop}
                             <ChipCheckBadge visible={shopLocation === shop} />
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     </motion.div>
 
