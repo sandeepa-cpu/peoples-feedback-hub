@@ -120,11 +120,11 @@ function SectionLabel({
 }
 
 /** Featured shop — shown first with highlight; also in the list below. */
-const FEATURED_SHOP = "Bmich";
+const FEATURED_SHOP = "BMICH";
 
 /** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
 const SHOP_LOCATIONS = [
-  "Bmich",
+  "BMICH",
   "Bulathsinhala",
   "Horana-02",
   "Egaloya",
