@@ -329,6 +329,7 @@ export default function HomePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const lastSubmitAttemptRef = useRef(0);
+  const shopSectionRef = useRef<HTMLDivElement>(null);
 
   const draft = useMemo<FeedbackDraft>(
     () => ({
@@ -400,8 +401,10 @@ export default function HomePage() {
     const shopMissing = shopLocation.trim() === "";
     if (rating === null) setShowRatingHint(true);
     else setShowRatingHint(false);
-    if (shopMissing) setShowShopHint(true);
-    else setShowShopHint(false);
+    if (shopMissing) {
+      setShowShopHint(true);
+      shopSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else setShowShopHint(false);
     if (rating === null || shopMissing) return;
 
     const stars = rating;
@@ -606,7 +609,7 @@ export default function HomePage() {
                       ) : null}
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className={sectionCard}>
+                    <motion.div ref={shopSectionRef} variants={staggerItem} className={sectionCard}>
                       <SectionLabel icon={MapPin}>ශාඛාව / Shop location (REQUIRED / අනිවාර්යයි)</SectionLabel>
                       <ShopLocationPicker
                         value={shopLocation}
