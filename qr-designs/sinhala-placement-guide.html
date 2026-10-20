@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peoples Bakers — QR තැබීමේ මාර්ගෝපදේශය</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body { background: #e9e2ea; }
+
+  body {
+    font-family: "Nirmala UI", "Iskoola Pota", "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 24px 0;
+  }
+
+  .page {
+    position: relative;
+    width: 210mm;
+    min-height: 297mm;
+    overflow: hidden;
+    background: #fff;
+    color: #2d1a2e;
+    page-break-after: always;
+    padding: 14mm 16mm 12mm;
+  }
+
+  .page:last-child { page-break-after: auto; }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .page { box-shadow: none; }
+  }
+  @media screen {
+    .page {
+      margin-bottom: 24px;
+      box-shadow: 0 24px 60px -24px rgba(30, 6, 32, 0.45);
+      border-radius: 10px;
+    }
+  }
+
+  .top-strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5mm;
+    background: linear-gradient(90deg, #fcee21 0%, #f5c518 50%, #902391 100%);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 5mm;
+    margin-bottom: 7mm;
+    padding-bottom: 5mm;
+    border-bottom: 0.4mm solid #e8d5e8;
+  }
+
+  .logo {
+    width: 18mm;
+    height: 18mm;
+    border-radius: 4mm;
+    object-fit: contain;
+    box-shadow: 0 0 0 1.2mm #fcee21;
+  }
+
+  .header h1 {
+    font-size: 17pt;
+    font-weight: 800;
+    color: #902391;
+    line-height: 1.2;
+  }
+
+  .header p {
+    font-size: 9.5pt;
+    color: #6d1b6c;
+    margin-top: 1mm;
+  }
+
+  .badge {
+    display: inline-block;
+    margin-bottom: 5mm;
+    padding: 2mm 4mm;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #faf0fa, #f3dcf3);
+    border: 0.3mm solid #902391/30;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #902391;
+    letter-spacing: 0.04em;
+  }
+
+  h2 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #902391;
+    margin: 5mm 0 3mm;
+    display: flex;
+    align-items: center;
+    gap: 2.5mm;
+  }
+
+  h2 .dot {
+    width: 3mm;
+    height: 3mm;
+    border-radius: 50%;
+    background: #fcee21;
+    flex-shrink: 0;
+  }
+
+  p, li {
+    font-size: 10.5pt;
+    line-height: 1.65;
+    color: #3d2a3d;
+  }
+
+  .intro {
+    background: linear-gradient(135deg, #faf0fa 0%, #fff 100%);
+    border: 0.3mm solid #e8c8e8;
+    border-left: 2mm solid #902391;
+    border-radius: 3mm;
+    padding: 4mm 5mm;
+    margin-bottom: 5mm;
+  }
+
+  .intro strong { color: #902391; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4mm;
+    margin: 3mm 0 5mm;
+  }
+
+  .place-card {
+    border: 0.3mm solid #e8d5e8;
+    border-radius: 3mm;
+    padding: 3.5mm 4mm;
+    background: #fff;
+  }
+
+  .place-card .icon {
+    font-size: 14pt;
+    margin-bottom: 1.5mm;
+  }
+
+  .place-card h3 {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: #902391;
+    margin-bottom: 1.5mm;
+  }
+
+  .place-card p {
+    font-size: 9pt;
+    line-height: 1.5;
+    color: #5a3d5a;
+  }
+
+  .priority {
+    display: inline-block;
+    margin-top: 1.5mm;
+    padding: 0.8mm 2.5mm;
+    border-radius: 999px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .p-high { background: #fef3c7; color: #92400e; }
+  .p-mid { background: #ede9fe; color: #5b21b6; }
+
+  .tips {
+    list-style: none;
+    margin: 2mm 0 4mm;
+  }
+
+  .tips li {
+    position: relative;
+    padding-left: 6mm;
+    margin-bottom: 2mm;
+  }
+
+  .tips li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #902391;
+    font-weight: 800;
+  }
+
+  .phrase-box {
+    background: linear-gradient(180deg, #fff 0%, #fbf6fb 100%);
+    border: 0.4mm solid #d4a8d4;
+    border-radius: 4mm;
+    padding: 4mm 5mm;
+    margin-bottom: 3.5mm;
+    position: relative;
+  }
+
+  .phrase-box::before {
+    content: "“";
+    position: absolute;
+    top: 1mm;
+    left: 3mm;
+    font-size: 22pt;
+    color: #fcee21;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .phrase-box p {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #4b0f4e;
+    padding-left: 5mm;
+    line-height: 1.55;
+  }
+
+  .phrase-box .sub {
+    margin-top: 2mm;
+    padding-left: 5mm;
+    font-size: 8.5pt;
+    color: #7a5a7a;
+    font-weight: 500;
+  }
+
+  .checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5mm;
+    margin-top: 3mm;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 2.5mm;
+    font-size: 9pt;
+    padding: 2.5mm 3mm;
+    border: 0.3mm dashed #c9a8c9;
+    border-radius: 2.5mm;
+  }
+
+  .check-item .box {
+    width: 4mm;
+    height: 4mm;
+    border: 0.4mm solid #902391;
+    border-radius: 0.8mm;
+    flex-shrink: 0;
+    margin-top: 0.5mm;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 16mm;
+    right: 16mm;
+    text-align: center;
+    font-size: 8pt;
+    color: #9a7a9a;
+    letter-spacing: 0.12em;
+    border-top: 0.3mm solid #eee0ee;
+    padding-top: 3mm;
+  }
+
+  .highlight-yellow {
+    background: linear-gradient(180deg, transparent 60%, #fef08a 60%);
+    font-weight: 700;
+  }
+
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 3mm 0 4mm;
+    font-size: 9pt;
+  }
+
+  .mini-table th {
+    background: #902391;
+    color: #fff;
+    padding: 2.5mm 3mm;
+    text-align: left;
+    font-weight: 700;
+  }
+
+  .mini-table td {
+    border: 0.3mm solid #e8d5e8;
+    padding: 2.5mm 3mm;
+    vertical-align: top;
+  }
+
+  .mini-table tr:nth-child(even) td { background: #faf5fa; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: Placement guide -->
+<div class="page">
+  <div class="top-strip"></div>
+
+  <div class="header">
+    <img class="logo" src="logo.jpg" alt="Peoples Bakers" />
+    <div>
+      <h1>Peoples Bakers<br />QR ප්‍රතිචාර මාර්ගෝපදේශය</h1>
+      <p>ගනුදෙනුකරුවන්ට QR code එක පැහැදිලිව පෙනෙන තැන් — සාර්ථක feedback සංග්‍රහණයක් සඳහා</p>
+    </div>
+  </div>
+
+  <span class="badge">📍 Shop එකේ QR තැබිය යුතු හොඳම ස්ථාන</span>
+
+  <div class="intro">
+    <p>
+      <strong>සටහන:</strong> QR code එක customer ට <span class="highlight-yellow">පැහැදිලිව, ලේසියෙන්, සහ තත්පර කිහිපයකින්</span> scan කර ගත හැකි තැනක තිබිය යුතුයි.
+      පහත ස්ථානවල print කර තැබීමෙන් feedback ලැබීම <strong>3–5 ගුණයකින්</strong> වැඩි වේ.
+    </p>
+  </div>
+
+  <h2><span class="dot"></span> QR තැබිය යුතු ප්‍රධාන ස්ථාන</h2>
+
+  <div class="grid-2">
+    <div class="place-card">
+      <div class="icon">🧾</div>
+      <h3>1. Cashier / Billing Counter</h3>
+      <p>ගෙවීම් කරන ස්ථානයේ customer ට ළඟම. බිල අවසන් වූ පසු scan කිරීමට පහසුයි.</p>
+      <span class="priority p-high">★★★ අත්‍යවශ්‍ය</span>
+    </div>
+    <div class="place-card">
+      <div class="icon">🪑</div>
+      <h3>2. Table Tent (මේස වල)</h3>
+      <p>Dine-in customers සඳහා. කෑම අවසන් වූ පසු හෝ බිල ගෙවීමට පෙර scan කරනවා.</p>
+      <span class="priority p-high">★★★ අත්‍යවශ්‍ය</span>
+    </div>
+    <div class="place-card">
+      <div class="icon">🚪</div>
+      <h3>3. Shop Entrance / Glass Door</h3>
+      <p>ඇතුළට එන අයට දකින්න පුළුවන්. Wall poster එක eye-level උසට තබන්න.</p>
+      <span class="priority p-high">★★★ අත්‍යවශ්‍ය</span>
+    </div>
+    <div class="place-card">
+      <div class="icon">🥐</div>
+      <h3>4. Display Showcase / Pastry Counter</h3>
+      <p>පාස්ට්‍රි බලන අයට පෙනෙන තැනක. "ඔබේ අදහස අපට වටිනවා" poster එක.</p>
+      <span class="priority p-mid">★★ ඉතා හොඳයි</span>
+    </div>
+    <div class="place-card">
+      <div class="icon">⏳</div>
+      <h3>5. Waiting / Queue Area</h3>
+      <p>පෝලයේ සිටින අයට scan කිරීමට වෙලාව තිබේ. බිල් ගෙවීමට ඉදිරියේ.</p>
+      <span class="priority p-mid">★★ ඉතා හොඳයි</span>
+    </div>
+    <div class="place-card">
+      <div class="icon">📦</div>
+      <h3>6. Takeaway Packing Area</h3>
+      <p>Takeaway customers සඳහා. බෑග් එක ලැබෙන තැනක කුඩා QR sticker/card එක.</p>
+      <span class="priority p-mid">★★ ඉතා හොඳයි</span>
+    </div>
+  </div>
+
+  <h2><span class="dot"></span> Customer ට හොඳින් පෙනෙන ලෙස තැබීමේ රහස්</h2>
+  <ul class="tips">
+    <li><strong>Eye-level උස:</strong> QR එක බිමින් සෙන්ටිමීටර් 120–150 ක් උසට තබන්න — දරුවන්ටත්, වැඩිහිටියන්ටත් පැහැදිලියි.</li>
+    <li><strong>ආලෝකය:</strong> අඳුරු කොනක නොතබන්න. Counter light / showcase light එකට ළඟ තබන්න.</li>
+    <li><strong>පැහැදිලි දර්ශනය:</strong> QR එක වෙනත් poster, price tag, හෝ box වලින් <strong>ආවරණය නොවිය යුතුයි.</strong></li>
+    <li><strong>Laminate කරන්න:</strong> Poster එක පිරිසිදු laminate කළාම දිගු කාලයක් ලස්සනව තියෙනවා.</li>
+    <li><strong>Card stock print:</strong> Table tent එක 250gsm (ගණු thick) paper එකක print කරන්න — මේසය මත හොඳින් නගිනවා.</li>
+    <li><strong>එක තැනක් නොවේ:</strong> Counter + Table + Entrance — <strong>අවම වශයෙන් 3 ස්ථාන</strong> වල තිබිය යුතුයි.</li>
+  </ul>
+
+  <table class="mini-table">
+    <thead>
+      <tr>
+        <th>Print Type</th>
+        <th>තැබිය යුතු තැන</th>
+        <th>Print Shop එකට කියන්න</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>wall-poster.pdf</strong></td>
+        <td>බිත්තිය, glass door, showcase</td>
+        <td>A4 Color + Laminate</td>
+      </tr>
+      <tr>
+        <td><strong>table-tent.pdf</strong></td>
+        <td>සෑම dine-in table එකකම</td>
+        <td>A4 Color, thick card, fold in half</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">Peoples Bakers · Page 1 of 2 · QR Feedback System</div>
+</div>
+
+<!-- PAGE 2: Staff phrases & persuasion -->
+<div class="page">
+  <div class="top-strip"></div>
+
+  <div class="header">
+    <img class="logo" src="logo.jpg" alt="Peoples Bakers" />
+    <div>
+      <h1>ගනුදෙනුකරුවන්ට කියන්න<br />— Advanced Sinhala වාක්‍ය</h1>
+      <p>Staff members මේ වාක්‍ය භාවිතා කරන්න — feedback ලැබීම වැඩි කරයි</p>
+    </div>
+  </div>
+
+  <span class="badge">💬 Customer ට කියන හොඳම වාක්‍ය (copy කර staff ට දෙන්න)</span>
+
+  <div class="phrase-box">
+    <p>ඔබේ අදහස අපට <strong>බෙහෙවින් වටිනවා!</strong> මේ QR එක scan කරලා තත්පර <strong>10–20</strong> ඇතුළත ඔබේ feedback එක දාන්න පුළුවන්. නම නොදාලා anonymous විදියටත් පුළුවන්.</p>
+    <p class="sub">📌 Billing අවසානයේ / table එකේ — මෙය ප්‍රධාන වාක්‍යය</p>
+  </div>
+
+  <div class="phrase-box">
+    <p>අද ඔබට කැමති වුණ pastry, cake, හෝ service ගැන <strong>හොඳ දේ හෝ වැඩිදුර වැඩිදියුත්වයක්</strong> කියන්න. අපි <strong>සෑම feedback එකක්ම</strong> කියවනවා — ඔබේ අදහසෙන් අපේ shop එක තවත් හොඳ වෙනවා.</p>
+    <p class="sub">📌 Showcase / counter එක ළඟ</p>
+  </div>
+
+  <div class="phrase-box">
+    <p>QR එක scan කරලා <strong>⭐ rating</strong> එකක් දාන්න — එතකොට අපි දැනගන්නවා අද ඔබට experience එක කෙසේද කියලා. <strong>2 මිනිත්තුවට වඩා අඩුයි!</strong></p>
+    <p class="sub">📌 Quick & easy — busy customers සඳහා</p>
+  </div>
+
+  <div class="phrase-box">
+    <p>WhatsApp එකෙන් feedback දාන්න ඕනේ නම් <strong>076 149 5455</strong> ට message එකක් දාන්න පුළුවන්. QR scan කරන්න අපහසු නම් staff member කෙනෙක් උදව් කරන්නම්!</p>
+    <p class="sub">📌 Phone use කරන අය / older customers සඳහා</p>
+  </div>
+
+  <div class="phrase-box">
+    <p>ඔබේ feedback එක අපට <strong>හෙට දිනයේ service එක වැඩිදියුත්වය කරන්න</strong> උදව් වෙනවා. කරුණාකර QR එක scan කරලා ඔබේ අදහස අපි සමඟ බෙදාගන්න — <strong>ස්තුතියි!</strong></p>
+    <p class="sub">📌 Exit / thank you moment — very effective</p>
+  </div>
+
+  <h2><span class="dot"></span> Staff ට කියන්න — කෙටි reminders</h2>
+  <ul class="tips">
+    <li>Customer ට bill දෙන වෙලාවේ QR එක finger එකෙන් show කරන්න.</li>
+    <li>"Scan කරන්න අපහසුද?" කියලා අහන්න — උදව් කරන්න.</li>
+    <li>Positive feedback ලැබුණොත් "ස්තුතියි, ඒක අපට හරිම වටිනවා" කියන්න.</li>
+    <li>Table tent එක මේසය මැදට, glass / plate වලින් ඈත්ව තබන්න.</li>
+    <li>සතියකට වරක් QR poster clean ද, scan වෙනවා ද බලන්න.</li>
+  </ul>
+
+  <h2><span class="dot"></span> Setup Checklist (print shop එකෙන් පසු)</h2>
+  <div class="checklist">
+    <div class="check-item"><span class="box"></span> Counter poster එක eye-level උසට තැබුවා</div>
+    <div class="check-item"><span class="box"></span> Entrance wall poster එක තැබුවා</div>
+    <div class="check-item"><span class="box"></span> Table tent සෑම table එකකම තිබේ</div>
+    <div class="check-item"><span class="box"></span> QR scan test කරලා form open වෙනවා</div>
+    <div class="check-item"><span class="box"></span> Staff ට Sinhala වාක්‍ය 5 කියලා දුන්නා</div>
+    <div class="check-item"><span class="box"></span> WhatsApp 076 149 5455 test කරලා බැලුවා</div>
+  </div>
+
+  <div class="intro" style="margin-top: 5mm;">
+    <p>
+      <strong>💡 Pro tip:</strong> දවසකට feedback <strong>3–5ක්</strong> ලැබෙන්න staff ට මේ වාක්‍ය භාවිතා කරන්න කියලා කියන්න.
+      Customer ට "ඔබේ අදහස වටිනවා" කියන එක විතරක් scan rate එක <strong>වැඩි කරයි.</strong>
+    </p>
+  </div>
+
+  <div class="footer">Peoples Bakers · Page 2 of 2 · 076 149 5455 · peoples-feedback-hub.vercel.app</div>
+</div>
+
+</body>
+</html>

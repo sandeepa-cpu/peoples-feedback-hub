@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { FormEvent, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
-  CheckCircle2,
   Layers,
+  Loader2,
   MapPin,
   MessageSquare,
   Send,
@@ -17,8 +17,19 @@ import {
   User,
 } from "lucide-react";
 
+import { ThankYouModal } from "./components/feedback/ThankYouModal";
+import { ShopLocationPicker } from "./components/feedback/ShopLocationPicker";
+import { useFeedbackDraft, clearFeedbackDraft, type FeedbackDraft } from "./hooks/useFeedbackDraft";
+import {
+  ITEM_CATEGORY_OPTIONS,
+  QUICK_TAG_LABELS,
+  SERVICE_TYPE_OPTIONS,
+  type QuickTag,
+} from "./lib/feedback-options";
 import { ratingEmojiForStars } from "./lib/rating-emoji";
+import { getCooldownRemainingMs, startSubmitCooldown, SUBMIT_DEBOUNCE_MS } from "./lib/submit-guard";
 import { supabase } from "@/lib/supabase";
+import type { FeedbackInsert } from "@/lib/database.types";
 import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 
 async function launchFullScreenConfetti() {
@@ -27,9 +38,9 @@ async function launchFullScreenConfetti() {
     "#fcee21",
     "#fff9a8",
     "#ffd43b",
-    "#902391",
-    "#c26cc1",
-    "#f5d0f5",
+    "#6B21A8",
+    "#A855F7",
+    "#e9d5ff",
     "#ffffff",
   ];
   const base = {
@@ -88,19 +99,19 @@ const staggerItem = {
   },
 };
 
-/** Form card — lavender pattern, not flat white */
+/** Form card — frosted glass over the purple backdrop */
 const glassPanel =
-  "pb-card-shine pb-form-pattern relative w-full rounded-[1.875rem] border border-[#902391]/15 p-6 shadow-[0_36px_90px_-26px_rgba(30,6,32,0.55),0_14px_44px_-20px_rgba(252,238,33,0.18),inset_0_1px_0_0_rgba(255,255,255,0.6)] ring-1 ring-[#fcee21]/25 sm:p-9";
+  "pb-card-shine pb-form-pattern relative w-full rounded-[1.875rem] border border-white/55 p-6 shadow-[0_36px_90px_-28px_rgba(107,33,168,0.55),0_14px_44px_-20px_rgba(168,85,247,0.28),inset_0_1px_0_0_rgba(255,255,255,0.72)] ring-1 ring-white/40 backdrop-blur-2xl sm:p-9";
 
 const fieldClass =
-  "w-full rounded-xl border border-[#902391]/12 bg-white/75 px-3.5 py-2.5 text-base leading-snug text-stone-900 shadow-[inset_0_1px_3px_rgba(144,35,145,0.06)] outline-none transition placeholder:text-stone-400 focus:border-[#902391]/45 focus:bg-white focus:shadow-[0_0_0_3px_rgba(144,35,145,0.18)]";
+  "w-full rounded-xl border border-[var(--pb-purple)]/15 bg-white/55 px-3.5 py-2.5 text-base leading-snug text-stone-900 shadow-[inset_0_1px_3px_rgba(107,33,168,0.06)] outline-none backdrop-blur-md transition placeholder:text-stone-400 focus:border-[var(--pb-purple-light)] focus:bg-white/80 focus:shadow-[0_0_0_3px_rgba(168,85,247,0.22)]";
 
 const labelClass =
-  "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-[#6d1b6c]";
+  "flex items-center justify-center gap-2 font-peoples-bakers-display text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-[var(--pb-purple)]";
 
-/** Section blocks — semi-transparent over the card pattern */
+/** Section blocks — glass panels inside the card */
 const sectionCard =
-  "pb-section-pattern w-full space-y-3 rounded-2xl border border-[#902391]/12 p-4 shadow-[0_2px_14px_-8px_rgba(92,20,96,0.15)] backdrop-blur-[2px] sm:p-5";
+  "pb-section-pattern w-full space-y-3 rounded-2xl border border-white/60 p-4 shadow-[0_8px_28px_-16px_rgba(107,33,168,0.35)] backdrop-blur-xl sm:p-5";
 
 function SectionLabel({
   icon: Icon,
@@ -111,63 +122,28 @@ function SectionLabel({
 }) {
   return (
     <p className={labelClass}>
-      <span className="flex size-6 items-center justify-center rounded-lg bg-[#902391]/10">
-        <Icon className="size-3.5 shrink-0 text-[#902391]" strokeWidth={2} aria-hidden />
+      <span className="flex size-6 items-center justify-center rounded-lg bg-[var(--pb-purple)]/10">
+        <Icon className="size-3.5 shrink-0 text-[var(--pb-purple)]" strokeWidth={2} aria-hidden />
       </span>
       <span>{children}</span>
     </p>
   );
 }
 
-/** Featured shop — shown first with highlight; also in the list below. */
-const FEATURED_SHOP = "BMICH";
-
-/** Display labels shipped to Supabase as plain text — never map checkbox “checked booleans”. */
-const SHOP_LOCATIONS = [
-  "BMICH",
-  "Bulathsinhala",
-  "Horana-02",
-  "Egaloya",
-  "Soyzapura",
-  "Kannanthudawa",
-  "Weththewa",
-  "Havelock",
-  "Govinna",
-  "Bandarawela",
-  "Boralesgamuwa",
-  "Eheliyagoda",
-] as const;
-const ITEM_CATEGORY_OPTIONS = ["Bakery", "Pastry", "Cake"] as const;
-const SERVICE_TYPE_OPTIONS = ["Dine-in", "Takeaway"] as const;
-const QUICK_TAG_LABELS = [
-  "Friendly staff",
-  "Fresh items",
-  "Quick service",
-  "Great value",
-] as const;
-
-function shopChipClass(active: boolean, featured = false) {
-  const featuredIdle =
-    "border-[#fcee21]/75 bg-gradient-to-b from-[#fffef5] to-[#fff9c4]/40 text-[#5b1259] shadow-[0_4px_18px_-6px_rgba(252,238,33,0.45)] ring-2 ring-[#fcee21]/50";
-  const featuredActive =
-    "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)] ring-2 ring-[#fcee21]/70";
-  return `relative w-full px-2.5 py-2.5 text-center text-[0.7rem] font-semibold normal-case leading-snug tracking-normal transition active:scale-[0.98] sm:px-3 sm:py-3 sm:text-[0.75rem] ${
+function choiceChipClass(active: boolean) {
+  return `relative max-w-[11rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
     active
-      ? featured
-        ? featuredActive
-        : "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
-      : featured
-        ? featuredIdle
-        : "border-stone-200 bg-white/80 text-stone-700 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
-  } rounded-xl border shadow-sm`;
+      ? "border-[var(--pb-purple)]/70 bg-white/75 text-[#4c1d95] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(107,33,168,0.4)]"
+      : "border-white/70 bg-white/45 text-stone-600 hover:border-[var(--pb-purple-light)]/50 hover:bg-white/70 hover:shadow-md"
+  } rounded-xl border shadow-sm backdrop-blur-sm`;
 }
 
-function choiceChipClass(active: boolean) {
-  return `relative max-w-[10rem] min-w-[5.75rem] flex-1 px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase leading-snug tracking-wide transition active:scale-[0.97] sm:max-w-none sm:min-w-0 sm:px-3.5 sm:py-2.5 sm:text-xs ${
+function tagChipClass(active: boolean) {
+  return `relative px-3.5 py-2 text-center text-[0.75rem] font-semibold normal-case leading-snug tracking-normal transition active:scale-[0.97] sm:px-4 sm:py-2.5 ${
     active
-      ? "border-[#902391]/70 bg-gradient-to-b from-[#faf0fa] to-[#f3dcf3] text-[#5b1259] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(144,35,145,0.45)]"
-      : "border-stone-200 bg-stone-50/90 text-stone-600 hover:border-[#902391]/40 hover:bg-white hover:shadow-md"
-  } rounded-xl border shadow-sm`;
+      ? "border-[var(--pb-purple)]/70 bg-white/80 text-[#4c1d95] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-4px_rgba(107,33,168,0.4)]"
+      : "border-white/70 bg-white/45 text-stone-700 hover:border-[var(--pb-purple-light)]/55 hover:bg-white/75 hover:shadow-md"
+  } rounded-full border shadow-sm backdrop-blur-sm`;
 }
 
 function ChipCheckBadge({ visible }: { visible: boolean }) {
@@ -177,7 +153,7 @@ function ChipCheckBadge({ visible }: { visible: boolean }) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.22, ease: [0.34, 1.45, 0.64, 1] as const }}
-      className="absolute -right-1.5 -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#902391] shadow-md ring-2 ring-white"
+      className="absolute -right-1.5 -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[var(--pb-purple)] shadow-md ring-2 ring-white"
       aria-hidden
     >
       <Check className="size-2.5 text-[#fcee21]" strokeWidth={3.5} />
@@ -227,7 +203,7 @@ function StarRating({
               whileTap={{ scale: 0.82 }}
               animate={rating === n ? { scale: [1, 1.28, 1] } : { scale: 1 }}
               transition={{ duration: 0.34, ease: [0.34, 1.45, 0.64, 1] as const }}
-              className="rounded-xl p-1 outline-none transition focus-visible:ring-2 focus-visible:ring-[#902391]/50 sm:p-1.5"
+              className="rounded-xl p-1 outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--pb-purple-light)]/70 sm:p-1.5"
             >
               <Star
                 strokeWidth={1.6}
@@ -250,7 +226,7 @@ function StarRating({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.16 }}
-              className="text-xs font-semibold tracking-wide text-[#7a1f79]"
+              className="text-xs font-semibold tracking-wide text-[var(--pb-purple)]"
             >
               {RATING_WORDS[activeUpTo]}
             </motion.span>
@@ -319,7 +295,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
 
   return (
     <div
-      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-[#902391]/18 bg-white/40 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+      className="flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border border-white/60 bg-white/40 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md"
       aria-hidden
     >
       <motion.span
@@ -331,7 +307,7 @@ function InteractiveRatingFace({ rating }: { rating: number | null }) {
       >
         {emoji}
       </motion.span>
-      <span className="mt-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[#7a1f79]/70">
+      <span className="mt-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[var(--pb-purple)]/70">
         {rating === null ? "Pick a rating" : "Your reaction"}
       </span>
     </div>
@@ -343,7 +319,7 @@ export default function HomePage() {
   const [shopLocation, setShopLocation] = useState("");
   const [itemCategory, setItemCategory] = useState("");
   const [serviceType, setServiceType] = useState("");
-  const [quickTags, setQuickTags] = useState<(typeof QUICK_TAG_LABELS)[number][]>([]);
+  const [quickTags, setQuickTags] = useState<QuickTag[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
@@ -351,8 +327,41 @@ export default function HomePage() {
   const [showRatingHint, setShowRatingHint] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const lastSubmitAttemptRef = useRef(0);
 
-  function toggleQuickTag(label: (typeof QUICK_TAG_LABELS)[number]) {
+  const draft = useMemo<FeedbackDraft>(
+    () => ({
+      v: 1,
+      rating,
+      shopLocation,
+      itemCategory,
+      serviceType,
+      quickTags,
+      name,
+      phone,
+      message,
+    }),
+    [rating, shopLocation, itemCategory, serviceType, quickTags, name, phone, message],
+  );
+
+  function applyDraft(saved: FeedbackDraft) {
+    setRating(saved.rating);
+    setShopLocation(saved.shopLocation);
+    setItemCategory(saved.itemCategory);
+    setServiceType(saved.serviceType);
+    setQuickTags(saved.quickTags);
+    setName(saved.name);
+    setPhone(saved.phone);
+    setMessage(saved.message);
+  }
+
+  useFeedbackDraft({
+    draft,
+    onHydrate: applyDraft,
+    persist: !submitted,
+  });
+
+  function toggleQuickTag(label: QuickTag) {
     setQuickTags((prev) =>
       prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label],
     );
@@ -374,6 +383,19 @@ export default function HomePage() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const now = Date.now();
+    if (now - lastSubmitAttemptRef.current < SUBMIT_DEBOUNCE_MS) return;
+    lastSubmitAttemptRef.current = now;
+    if (isSubmitting) return;
+
+    const cooldownMs = getCooldownRemainingMs(now);
+    if (cooldownMs > 0) {
+      setSubmitError(
+        `Please wait ${Math.ceil(cooldownMs / 1000)}s before sending another note.`,
+      );
+      return;
+    }
+
     if (rating === null) {
       setShowRatingHint(true);
       return;
@@ -394,7 +416,7 @@ export default function HomePage() {
     const tagLabelsSorted =
       quickTags.length > 0 ? [...quickTags].sort((a, b) => a.localeCompare(b)).join(", ") : null;
 
-    const insertPayload = {
+    const insertPayload: FeedbackInsert = {
       rating: stars,
       message: messageTrimmed,
       name: nameTrimmed.length > 0 ? nameTrimmed : null,
@@ -406,7 +428,7 @@ export default function HomePage() {
     };
 
     try {
-      const { error } = await supabase.from("feedbacks").insert([insertPayload]);
+      const { error } = await supabase.from("feedbacks").insert(insertPayload);
 
       if (error) {
         console.error("[supabase] insert feedback", error);
@@ -425,6 +447,8 @@ export default function HomePage() {
       return;
     }
 
+    clearFeedbackDraft();
+    startSubmitCooldown();
     setIsSubmitting(false);
     void launchFullScreenConfetti();
     setSubmitted(true);
@@ -443,6 +467,7 @@ export default function HomePage() {
     setShowRatingHint(false);
     setSubmitError(null);
     setIsSubmitting(false);
+    clearFeedbackDraft();
   }
 
   return (
@@ -451,7 +476,7 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
-        className="pb-bakery-bg relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px)+1.25rem)] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-12"
+        className="pb-bakery-bg relative flex min-h-screen w-full flex-col items-center justify-center overflow-x-hidden px-4 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px)+1.25rem)] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-12"
       >
         {/* Animated blur blobs are desktop-only: large blurred layers hurt mobile scrolling/typing performance */}
         <div
@@ -488,19 +513,15 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`mt-8 w-full overflow-hidden ${glassPanel}`}
+            className={`mt-8 w-full ${glassPanel}`}
           >
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#fcee21] via-[#f5c518] to-[#902391]"
+              className="pointer-events-none absolute inset-x-0 top-0 h-1.5 rounded-t-[1.875rem] bg-gradient-to-r from-[#fcee21] via-[var(--pb-purple-light)] to-[var(--pb-purple)]"
               aria-hidden
             />
-            <AnimatePresence mode="wait" initial={false}>
-              {!submitted ? (
-                <motion.form
-                  key="form"
+            <motion.form
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.25 }}
                   onSubmit={handleSubmit}
                   className="relative z-[1] flex w-full flex-col items-center gap-6"
@@ -524,30 +545,39 @@ export default function HomePage() {
                           priority
                         />
                       </div>
-                      <p className="mt-3 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-[#7a1f79]/90">
+                      <p className="mt-3 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-[var(--pb-purple)]/90">
                         Peoples Bakers
                       </p>
                     </motion.div>
 
                     <motion.div variants={staggerItem} className="w-full max-w-sm space-y-1.5">
                       <div className="flex items-center justify-between px-0.5">
-                        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-stone-400">
+                        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-stone-500">
                           ප්‍රගතිය · Progress
                         </span>
-                        <span
-                          className={`text-[0.6875rem] font-bold tabular-nums ${
-                            completionPercent === 100 ? "text-[#16a34a]" : "text-[#7a1f79]"
-                          }`}
-                        >
-                          {completionPercent}%
+                        <span className="relative inline-flex h-4 min-w-[2.5rem] justify-end overflow-hidden">
+                          <AnimatePresence mode="wait" initial={false}>
+                            <motion.span
+                              key={completionPercent}
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -8 }}
+                              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
+                              className={`text-[0.6875rem] font-bold tabular-nums ${
+                                completionPercent === 100 ? "text-[#16a34a]" : "text-[var(--pb-purple)]"
+                              }`}
+                            >
+                              {completionPercent}%
+                            </motion.span>
+                          </AnimatePresence>
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100 shadow-inner">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/50 shadow-inner">
                         <motion.div
                           className={`h-full rounded-full ${
                             completionPercent === 100
                               ? "bg-gradient-to-r from-[#22c55e] to-[#16a34a]"
-                              : "bg-gradient-to-r from-[#fcee21] via-[#f5c518] to-[#902391]"
+                              : "bg-gradient-to-r from-[var(--pb-yellow)] via-[var(--pb-purple-light)] to-[var(--pb-purple)]"
                           }`}
                           initial={false}
                           animate={{ width: `${Math.max(completionPercent, 3)}%` }}
@@ -575,28 +605,7 @@ export default function HomePage() {
 
                     <motion.div variants={staggerItem} className={sectionCard}>
                       <SectionLabel icon={MapPin}>ශාඛාව / Shop location (optional)</SectionLabel>
-                      <div
-                        className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3"
-                        role="radiogroup"
-                        aria-label="Shop location"
-                      >
-                        {SHOP_LOCATIONS.map((shop) => {
-                          const featured = shop === FEATURED_SHOP;
-                          return (
-                          <button
-                            key={shop}
-                            type="button"
-                            role="radio"
-                            aria-checked={shopLocation === shop}
-                            onClick={() => setShopLocation(shopLocation === shop ? "" : shop)}
-                            className={`${shopChipClass(shopLocation === shop, featured)}${featured ? " col-span-2 sm:col-span-3" : ""}`}
-                          >
-                            {shop}
-                            <ChipCheckBadge visible={shopLocation === shop} />
-                          </button>
-                          );
-                        })}
-                      </div>
+                      <ShopLocationPicker value={shopLocation} onChange={setShopLocation} />
                     </motion.div>
 
                     <motion.div variants={staggerItem} className={sectionCard}>
@@ -648,7 +657,7 @@ export default function HomePage() {
                               type="button"
                               aria-pressed={on}
                               onClick={() => toggleQuickTag(tag)}
-                              className={choiceChipClass(on)}
+                              className={tagChipClass(on)}
                             >
                               {tag}
                               <ChipCheckBadge visible={on} />
@@ -697,7 +706,7 @@ export default function HomePage() {
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="message" className="flex items-center gap-2 text-left text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                          <MessageSquare className="size-3 shrink-0 text-[#902391]/70" strokeWidth={2} aria-hidden />
+                          <MessageSquare className="size-3 shrink-0 text-[var(--pb-purple)]/70" strokeWidth={2} aria-hidden />
                           පණිවිඩය / Message
                         </label>
                         <textarea
@@ -712,7 +721,7 @@ export default function HomePage() {
                         />
                         <p
                           className={`text-right text-[0.625rem] tabular-nums ${
-                            message.length >= 450 ? "font-semibold text-[#902391]" : "text-stone-400"
+                            message.length >= 450 ? "font-semibold text-[var(--pb-purple)]" : "text-stone-400"
                           }`}
                           aria-hidden
                         >
@@ -727,9 +736,13 @@ export default function HomePage() {
                         type="submit"
                         disabled={isSubmitting}
                         aria-busy={isSubmitting}
-                        className="pb-shimmer flex min-h-[3.5rem] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-[#a02b9f] via-[#902391] to-[#5c1460] px-5 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(92,20,96,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-[#fcee21]/35 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
+                        className="pb-shimmer flex min-h-[3.5rem] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-[var(--pb-purple-light)] via-[var(--pb-purple)] to-[#581c87] px-5 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_32px_-8px_rgba(107,33,168,0.65),inset_0_1px_0_rgba(255,255,255,0.22)] ring-1 ring-[var(--pb-yellow)]/40 transition hover:brightness-[1.08] active:scale-[0.99] active:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
                       >
-                        <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
+                        {isSubmitting ? (
+                          <Loader2 className="size-4 shrink-0 animate-spin" strokeWidth={2} aria-hidden />
+                        ) : (
+                          <Send className="size-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
+                        )}
                         {isSubmitting ? "යවමින් · Sending…" : "ප්‍රතිචාරය එවන්න · Submit"}
                       </button>
 
@@ -772,48 +785,6 @@ export default function HomePage() {
                     </motion.div>
                   </motion.div>
                 </motion.form>
-              ) : (
-                <motion.div
-                  key="thanks"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
-                  className="py-6 text-center"
-                >
-                  <div className="pb-success-badge mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-[#faf0fa] to-[#f3dcf3] shadow-[0_8px_28px_-8px_rgba(144,35,145,0.5)] ring-4 ring-[#fcee21]/60">
-                    <CheckCircle2 className="size-9 text-[#902391]" strokeWidth={2} aria-hidden />
-                  </div>
-                  <p className="mt-5 font-peoples-bakers-display text-2xl font-semibold tracking-wide text-[#5b1259]">
-                    ස්තුතියි · Thank you
-                  </p>
-                  <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-stone-600">
-                    We received your feedback with gratitude.
-                  </p>
-                  <div className="mx-auto mt-6 max-w-sm overflow-hidden rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-white p-4">
-                    <a
-                      href={WHATSAPP_CHAT_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="pb-whatsapp-premium flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-sm font-bold uppercase tracking-[0.08em] text-white transition hover:brightness-110 active:scale-[0.99]"
-                      aria-label={`WhatsApp — ${WHATSAPP_PHONE_DISPLAY}`}
-                    >
-                      <WhatsAppGlyph className="size-5 shrink-0" />
-                      WhatsApp · {WHATSAPP_PHONE_DISPLAY}
-                    </a>
-                  </div>
-                  <motion.button
-                    type="button"
-                    onClick={reset}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="mt-6 rounded-2xl border border-[#902391]/25 bg-[#faf0fa] px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#5b1259] shadow-[0_6px_24px_-8px_rgba(92,20,96,0.25)] transition hover:bg-[#f3dcf3]"
-                  >
-                    නැවත යොමු කරන්න · Send another
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.section>
 
           <motion.div
@@ -834,6 +805,7 @@ export default function HomePage() {
           </motion.div>
         </div>
       </motion.main>
+      <ThankYouModal open={submitted} name={name} onSendAnother={reset} />
     </>
   );
 }

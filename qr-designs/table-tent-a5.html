@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peoples Bakers — Feedback QR Table Tent (A5-ish, fold down)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /*
+   * Slightly smaller than A5 (148×210mm): 138×196mm.
+   * Fold horizontally in the middle so panels stack top → bottom
+   * (pahalata), not a tall side-fold.
+   */
+  @page { size: 138mm 196mm; margin: 0; }
+
+  html, body { background: #e9e2ea; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  .sheet {
+    position: relative;
+    width: 138mm;
+    height: 196mm;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .sheet { box-shadow: none; }
+  }
+  @media screen {
+    .sheet { box-shadow: 0 24px 60px -28px rgba(30,6,32,0.5); border-radius: 8px; }
+  }
+
+  .fold-line {
+    position: absolute;
+    top: 98mm;
+    left: 0; right: 0;
+    border-top: 0.35mm dashed rgba(144,35,145,0.4);
+    z-index: 5;
+  }
+  .fold-hint {
+    position: absolute;
+    top: 95.2mm;
+    right: 4mm;
+    font-size: 6pt;
+    color: rgba(144,35,145,0.65);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 5;
+  }
+
+  .panel {
+    position: absolute;
+    left: 0;
+    width: 138mm;
+    height: 98mm;
+    color: #fff;
+    background-color: #8e248d;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 10%, rgba(255,255,255,0.15), transparent 45%),
+      radial-gradient(ellipse 60% 45% at 92% 8%, rgba(252,238,33,0.22), transparent 40%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 16px),
+      linear-gradient(160deg, #a02b9f 0%, #902391 45%, #6d1b6c 78%, #4b0f4e 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2mm;
+    padding: 4.5mm 7mm 7mm;
+  }
+
+  .panel.top { top: 0; transform: rotate(180deg); }
+  .panel.bottom { top: 98mm; }
+
+  .accent-strip {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 0;
+    height: 2.8mm;
+    background: linear-gradient(90deg, #fcee21 0%, #f5c518 55%, #902391 100%);
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+  }
+  .brand-row img {
+    width: 9mm;
+    height: 9mm;
+    object-fit: contain;
+    border-radius: 2mm;
+    background: #fff;
+    box-shadow: 0 0 0 0.7mm #fcee21;
+  }
+  .brand-row .name {
+    font-size: 9.5pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  .brand-row .tag {
+    font-size: 6.5pt;
+    font-style: italic;
+    color: #fcee21;
+  }
+
+  .qr-side {
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 4mm;
+    padding: 2.5mm;
+    box-shadow:
+      0 0 0 1.1mm rgba(252,238,33,0.95),
+      0 0 0 2.2mm rgba(144,35,145,0.4),
+      0 4mm 10mm -5mm rgba(30,6,32,0.55);
+  }
+  .qr-side img {
+    display: block;
+    width: 32mm;
+    height: 32mm;
+  }
+
+  .text-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 118mm;
+  }
+
+  .headline-si {
+    font-size: 10pt;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .headline-en {
+    margin-top: 0.8mm;
+    font-size: 7.5pt;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fcee21;
+  }
+
+  .hint {
+    margin-top: 1.5mm;
+    font-size: 6.5pt;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.3;
+    max-width: 112mm;
+  }
+
+  .stars {
+    margin-top: 1mm;
+    font-size: 10pt;
+    letter-spacing: 0.16em;
+    color: #fcc419;
+    text-shadow: 0 0.6mm 1.5mm rgba(30,6,32,0.5);
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="panel top">
+      <div class="brand-row">
+        <img src="logo.jpg" alt="Peoples Bakers logo" />
+        <div>
+          <div class="name">PEOPLES BAKERS</div>
+          <div class="tag">හිත ඉල්ලන රස</div>
+        </div>
+      </div>
+      <div class="qr-side"><img src="qr-code.png" alt="Feedback QR code" /></div>
+      <div class="text-side">
+        <div class="headline-si">ඔබේ අදහස අපට වටිනවා!</div>
+        <div class="headline-en">Scan for feedback</div>
+        <div class="hint">Phone camera එකෙන් QR කේතය scan කර ඔබේ ප්‍රතිචාරය තත්පර කිහිපයකින් එවන්න.</div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+
+    <div class="fold-hint">Fold here · මෙතනින් නමන්න</div>
+    <div class="fold-line"></div>
+
+    <div class="panel bottom">
+      <div class="brand-row">
+        <img src="logo.jpg" alt="Peoples Bakers logo" />
+        <div>
+          <div class="name">PEOPLES BAKERS</div>
+          <div class="tag">හිත ඉල්ලන රස</div>
+        </div>
+      </div>
+      <div class="qr-side"><img src="qr-code.png" alt="Feedback QR code" /></div>
+      <div class="text-side">
+        <div class="headline-si">ඔබේ අදහස අපට වටිනවා!</div>
+        <div class="headline-en">Scan for feedback</div>
+        <div class="hint">Phone camera එකෙන් QR කේතය scan කර ඔබේ ප්‍රතිචාරය තත්පර කිහිපයකින් එවන්න.</div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peoples Bakers — Feedback QR Wall Poster (A4)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body { background: #e9e2ea; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  .poster {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    color: #fff;
+    background-color: #8e248d;
+    background-image:
+      radial-gradient(ellipse 90% 55% at 12% 8%, rgba(255,255,255,0.16), transparent 46%),
+      radial-gradient(ellipse 65% 40% at 90% 4%, rgba(252,238,33,0.22), transparent 40%),
+      radial-gradient(ellipse 75% 50% at 92% 94%, rgba(255,255,255,0.12), transparent 44%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1.2px, transparent 1.2px, transparent 22px),
+      linear-gradient(165deg, #a02b9f 0%, #902391 40%, #7a1f79 70%, #4b0f4e 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16mm 14mm 12mm;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .poster { box-shadow: none; }
+  }
+  @media screen {
+    .poster { box-shadow: 0 30px 80px -30px rgba(30,6,32,0.6); border-radius: 12px; }
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 7mm;
+    background: linear-gradient(90deg, #fcee21 0%, #f5c518 55%, #902391 100%);
+  }
+  .bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 7mm;
+    background: linear-gradient(90deg, #902391 0%, #f5c518 45%, #fcee21 100%);
+  }
+
+  .logo-ring {
+    margin-top: 8mm;
+    width: 34mm;
+    height: 34mm;
+    border-radius: 9mm;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 2.2mm #fcee21, 0 10mm 18mm -8mm rgba(30,6,32,0.55);
+  }
+  .logo-ring img {
+    width: 30mm;
+    height: 30mm;
+    object-fit: contain;
+    border-radius: 7mm;
+  }
+
+  .brand-name {
+    margin-top: 7mm;
+    font-size: 34pt;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-shadow: 0 2mm 5mm rgba(30,6,32,0.45);
+  }
+  .brand-tag {
+    margin-top: 2.5mm;
+    font-size: 15pt;
+    font-style: italic;
+    color: #fcee21;
+    letter-spacing: 0.06em;
+  }
+
+  .divider {
+    margin: 8mm auto 0;
+    width: 60mm;
+    height: 0.8mm;
+    border-radius: 1mm;
+    background: linear-gradient(90deg, transparent, rgba(252,238,33,0.9), transparent);
+  }
+
+  .invite-si {
+    margin-top: 7mm;
+    font-size: 17pt;
+    font-weight: 600;
+    color: #fff;
+  }
+  .invite-en {
+    margin-top: 2mm;
+    font-size: 11pt;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .qr-card {
+    margin-top: 9mm;
+    background: #fff;
+    border-radius: 10mm;
+    padding: 8mm;
+    box-shadow:
+      0 0 0 2.5mm rgba(252,238,33,0.95),
+      0 0 0 5mm rgba(144,35,145,0.35),
+      0 14mm 24mm -10mm rgba(30,6,32,0.6);
+  }
+  .qr-card img {
+    display: block;
+    width: 88mm;
+    height: 88mm;
+  }
+
+  .scan-row {
+    margin-top: 8mm;
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+  }
+  .scan-icon { font-size: 20pt; }
+  .scan-text {
+    font-size: 24pt;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fcee21;
+    text-shadow: 0 1.5mm 4mm rgba(30,6,32,0.5);
+  }
+  .scan-sub {
+    margin-top: 2.5mm;
+    font-size: 13pt;
+    color: rgba(255,255,255,0.92);
+    font-weight: 600;
+  }
+
+  .steps {
+    margin-top: 8mm;
+    display: flex;
+    gap: 6mm;
+    justify-content: center;
+  }
+  .step {
+    background: rgba(255,255,255,0.12);
+    border: 0.5mm solid rgba(252,238,33,0.5);
+    border-radius: 5mm;
+    padding: 4mm 6mm;
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #fff;
+    min-width: 40mm;
+  }
+  .step .num {
+    display: block;
+    font-size: 14pt;
+    font-weight: 800;
+    color: #fcee21;
+    margin-bottom: 1.5mm;
+  }
+
+  .footer {
+    margin-top: auto;
+    padding-bottom: 6mm;
+    font-size: 9pt;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+  }
+</style>
+</head>
+<body>
+  <div class="poster">
+    <div class="top-bar"></div>
+
+    <div class="logo-ring"><img src="logo.jpg" alt="Peoples Bakers logo" /></div>
+
+    <div class="brand-name">PEOPLES BAKERS</div>
+    <div class="brand-tag">හිත ඉල්ලන රස</div>
+
+    <div class="divider"></div>
+
+    <div class="invite-si">ඔබේ අදහස අපට වටිනවා!</div>
+    <div class="invite-en">We value your feedback</div>
+
+    <div class="qr-card"><img src="qr-code.png" alt="Feedback QR code" /></div>
+
+    <div class="scan-row">
+      <span class="scan-icon">📱</span>
+      <span class="scan-text">Please scan for any feedback</span>
+    </div>
+    <div class="scan-sub">ප්‍රතිචාරය දැක්වීමට QR කේතය ස්කෑන් කරන්න</div>
+
+    <div class="steps">
+      <div class="step"><span class="num">1</span>Camera එක අරින්න</div>
+      <div class="step"><span class="num">2</span>QR එක scan කරන්න</div>
+      <div class="step"><span class="num">3</span>අදහස එවන්න</div>
+    </div>
+
+    <div class="footer">Peoples Bakers · Thank you</div>
+  </div>
+</body>
+</html>

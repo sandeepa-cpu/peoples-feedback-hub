@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8" />
+<title>Peoples Bakers — QR මාර්ගෝපදේශය (A5)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: A5 portrait; margin: 0; }
+
+  html, body { background: #e9e2ea; }
+  body {
+    font-family: "Nirmala UI", "Iskoola Pota", "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+  }
+
+  .sheet {
+    position: relative;
+    width: 148mm;
+    height: 210mm;
+    overflow: hidden;
+    background: #fff;
+    color: #2d1a2e;
+    padding: 7mm 8mm 6mm;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .sheet { box-shadow: none; }
+  }
+  @media screen {
+    .sheet { box-shadow: 0 16px 40px -16px rgba(30,6,32,0.4); border-radius: 6px; }
+  }
+
+  .strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5mm;
+    background: linear-gradient(90deg, #fcee21, #902391);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    margin-bottom: 3mm;
+    padding-bottom: 2.5mm;
+    border-bottom: 0.25mm solid #e8d5e8;
+  }
+
+  .logo { width: 11mm; height: 11mm; border-radius: 2mm; object-fit: contain; box-shadow: 0 0 0 0.8mm #fcee21; }
+
+  .head h1 {
+    font-size: 9.5pt;
+    font-weight: 800;
+    color: #902391;
+    line-height: 1.15;
+  }
+
+  .head p { font-size: 6.5pt; color: #6d1b6c; margin-top: 0.5mm; }
+
+  h2 {
+    font-size: 7.5pt;
+    font-weight: 800;
+    color: #902391;
+    margin: 2.5mm 0 1.5mm;
+    padding-left: 2.5mm;
+    border-left: 1.2mm solid #fcee21;
+  }
+
+  p, li { font-size: 6.5pt; line-height: 1.45; color: #3d2a3d; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm; }
+
+  .box {
+    border: 0.25mm solid #e8d5e8;
+    border-radius: 2mm;
+    padding: 2mm 2.5mm;
+    background: #faf8fa;
+  }
+
+  .box strong { color: #902391; font-size: 6.5pt; }
+
+  ul.compact { list-style: none; margin: 0; }
+  ul.compact li {
+    position: relative;
+    padding-left: 3.5mm;
+    margin-bottom: 1mm;
+    font-size: 6.5pt;
+    line-height: 1.4;
+  }
+  ul.compact li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #902391;
+    font-weight: 800;
+  }
+
+  .phrase {
+    background: #fbf6fb;
+    border: 0.25mm solid #d4a8d4;
+    border-radius: 2mm;
+    padding: 2mm 2.5mm;
+    margin-bottom: 1.5mm;
+    font-size: 6.5pt;
+    font-weight: 600;
+    color: #4b0f4e;
+    line-height: 1.42;
+  }
+
+  .tag {
+    display: inline-block;
+    margin-top: 0.8mm;
+    padding: 0.4mm 1.5mm;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 5.5pt;
+    font-weight: 700;
+  }
+
+  .checks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1mm;
+    font-size: 5.8pt;
+  }
+
+  .chk {
+    display: flex;
+    gap: 1.5mm;
+    align-items: flex-start;
+    padding: 1mm;
+    border: 0.2mm dashed #d4a8d4;
+    border-radius: 1.5mm;
+  }
+
+  .chk .sq {
+    width: 2.5mm;
+    height: 2.5mm;
+    border: 0.3mm solid #902391;
+    border-radius: 0.4mm;
+    flex-shrink: 0;
+  }
+
+  .foot {
+    position: absolute;
+    bottom: 4mm;
+    left: 8mm; right: 8mm;
+    text-align: center;
+    font-size: 5.5pt;
+    color: #9a7a9a;
+    border-top: 0.2mm solid #eee0ee;
+    padding-top: 1.5mm;
+  }
+
+  .note {
+    background: #faf0fa;
+    border-left: 1.2mm solid #902391;
+    padding: 2mm 2.5mm;
+    margin-bottom: 2.5mm;
+    font-size: 6pt;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="strip"></div>
+
+  <div class="head">
+    <img class="logo" src="logo.jpg" alt="PB" />
+    <div>
+      <h1>Peoples Bakers — QR මාර්ගෝපදේශය</h1>
+      <p>Customer ට පැහැදිලිව පෙනෙන තැන් · Staff සඳහා කෙටි මාර්ගෝපදේශය</p>
+    </div>
+  </div>
+
+  <div class="note">
+    QR එක <strong>පැහැදිලිව, ලේසියෙන්, තත්පර කිහිපයකින්</strong> scan කර ගත හැකි තැනක තබන්න. අවම වශයෙන් <strong>3 ස්ථාන</strong> (Counter + Table + Entrance).
+  </div>
+
+  <h2>📍 QR තැබිය යුතු තැන්</h2>
+  <div class="cols">
+    <ul class="compact">
+      <li><strong>Cashier counter</strong> — බිල ගෙවන තැන <span class="tag">★★★</span></li>
+      <li><strong>Table tent</strong> — dine-in මේස <span class="tag">★★★</span></li>
+      <li><strong>Entrance</strong> — glass door, eye-level <span class="tag">★★★</span></li>
+    </ul>
+    <ul class="compact">
+      <li><strong>Showcase</strong> — pastry counter ළඟ</li>
+      <li><strong>Queue area</strong> — පෝලිය ළඟ</li>
+      <li><strong>Takeaway</strong> — බෑග් දෙන තැන</li>
+    </ul>
+  </div>
+
+  <h2>👁️ හොඳින් පෙනෙන ලෙස</h2>
+  <ul class="compact">
+    <li>උස: බිමින් <strong>cm 120–150</strong> (eye-level)</li>
+    <li>ආලෝකමත්, අඳුරු කොනක නොතබන්න</li>
+    <li>Poster laminate · Table tent thick card (250gsm)</li>
+    <li>wall-poster.pdf → A4 color · table-tent.pdf → fold</li>
+  </ul>
+
+  <h2>💬 Customer ට කියන වාක්‍ය</h2>
+  <div class="phrase">"ඔබේ අදහස අපට <strong>බෙහෙවින් වටිනවා!</strong> QR scan කරලා <strong>10–20 තත්පර</strong> ඇතුළත feedback දාන්න. නම නැතුවත් පුළුවන්."</div>
+  <div class="phrase">"අද experience එක ගැන ⭐ rating එකක් දාන්න — <strong>2 මිනිත්ටුවට අඩුයි!</strong>"</div>
+  <div class="phrase">"WhatsApp: <strong>076 149 5455</strong> · Scan අපහසු නම් staff උදව් කරන්නම්!"</div>
+  <div class="phrase">"ඔබේ feedback එකෙන් අපේ service එක <strong>හෙට වඩා හොඳ වෙනවා</strong> — ස්තුතියි!"</div>
+
+  <h2>✅ Checklist</h2>
+  <div class="checks">
+    <div class="chk"><span class="sq"></span>Counter poster</div>
+    <div class="chk"><span class="sq"></span>Entrance poster</div>
+    <div class="chk"><span class="sq"></span>Table tents</div>
+    <div class="chk"><span class="sq"></span>QR scan test</div>
+    <div class="chk"><span class="sq"></span>Staff ට වාක්‍ය දුන්නා</div>
+    <div class="chk"><span class="sq"></span>WhatsApp test</div>
+  </div>
+
+  <div class="foot">Peoples Bakers · A5 · 076 149 5455</div>
+</div>
+</body>
+</html>

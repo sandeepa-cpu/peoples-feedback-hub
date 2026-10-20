@@ -8,6 +8,12 @@
 @source "../*.config.{js,mjs,ts}";
 @source "../next.config.{js,mjs,ts}";
 
+:root {
+  --pb-purple: #6b21a8;
+  --pb-purple-light: #a855f7;
+  --pb-yellow: #fcee21;
+}
+
 body {
   margin: 0;
   text-rendering: optimizeLegibility;
@@ -39,7 +45,7 @@ body {
       transparent 1px,
       transparent 18px
     ),
-    linear-gradient(165deg, #a02b9f 0%, #902391 40%, #7a1f79 70%, #4b0f4e 100%);
+    linear-gradient(165deg, #a855f7 0%, #6b21a8 42%, #581c87 72%, #3b0764 100%);
   background-size:
     100% 100%,
     100% 100%,
@@ -125,37 +131,25 @@ body {
   z-index: 0;
 }
 
-/* Form card — soft lavender pattern instead of flat white */
+/* Form card — frosted glass over the purple backdrop */
 .pb-form-pattern {
-  background-color: #faf4fa;
+  background-color: rgba(255, 255, 255, 0.46);
   background-image:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(252, 238, 33, 0.09), transparent 50%),
-    radial-gradient(ellipse 60% 45% at 85% 75%, rgba(144, 35, 145, 0.07), transparent 48%),
-    radial-gradient(ellipse 55% 40% at 50% 42%, rgba(243, 220, 243, 0.45) 0%, transparent 68%),
-    repeating-linear-gradient(
-      -12deg,
-      transparent,
-      transparent 28px,
-      rgba(144, 35, 145, 0.025) 28px,
-      rgba(144, 35, 145, 0.025) 29px
-    ),
-    repeating-linear-gradient(
-      78deg,
-      transparent,
-      transparent 32px,
-      rgba(252, 238, 33, 0.03) 32px,
-      rgba(252, 238, 33, 0.03) 33px
-    ),
-    linear-gradient(168deg, #fefcff 0%, #faf0fa 38%, #f4e2f4 72%, #f0daf0 100%);
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(252, 238, 33, 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 85% 75%, rgba(168, 85, 247, 0.14), transparent 48%),
+    linear-gradient(168deg, rgba(255, 255, 255, 0.62) 0%, rgba(250, 245, 255, 0.4) 100%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
 }
 
 /* Section blocks inside the form */
 .pb-section-pattern {
-  background-color: rgba(255, 255, 255, 0.55);
+  background-color: rgba(255, 255, 255, 0.48);
   background-image:
-    radial-gradient(circle at 100% 0%, rgba(252, 238, 33, 0.06), transparent 42%),
-    radial-gradient(circle at 0% 100%, rgba(144, 35, 145, 0.05), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(251, 246, 251, 0.85) 100%);
+    radial-gradient(circle at 100% 0%, rgba(168, 85, 247, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(250, 245, 255, 0.38) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .font-peoples-bakers-display {

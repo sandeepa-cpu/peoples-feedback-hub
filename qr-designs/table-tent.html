@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peoples Bakers — Feedback QR Table Tent (A4, fold in half)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body { background: #e9e2ea; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  /*
+   * A4 sheet folded in half along the horizontal middle = a two-sided
+   * table tent. The top panel is printed upside down so both sides
+   * stand upright after folding.
+   */
+  .sheet {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .sheet { box-shadow: none; }
+  }
+  @media screen {
+    .sheet { box-shadow: 0 30px 80px -30px rgba(30,6,32,0.5); border-radius: 10px; }
+  }
+
+  .fold-line {
+    position: absolute;
+    top: 148.5mm;
+    left: 0; right: 0;
+    border-top: 0.4mm dashed rgba(144,35,145,0.4);
+    z-index: 5;
+  }
+  .fold-hint {
+    position: absolute;
+    top: 145mm;
+    right: 6mm;
+    font-size: 7.5pt;
+    color: rgba(144,35,145,0.65);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    z-index: 5;
+  }
+
+  .panel {
+    position: absolute;
+    left: 0;
+    width: 210mm;
+    height: 148.5mm;
+    color: #fff;
+    background-color: #8e248d;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 10%, rgba(255,255,255,0.15), transparent 45%),
+      radial-gradient(ellipse 60% 45% at 92% 8%, rgba(252,238,33,0.22), transparent 40%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 20px),
+      linear-gradient(160deg, #a02b9f 0%, #902391 45%, #6d1b6c 78%, #4b0f4e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12mm;
+    padding: 10mm 16mm;
+  }
+
+  .panel.top { top: 0; transform: rotate(180deg); }
+  .panel.bottom { top: 148.5mm; }
+
+  .accent-strip {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 0;
+    height: 4.5mm;
+    background: linear-gradient(90deg, #fcee21 0%, #f5c518 55%, #902391 100%);
+  }
+
+  .qr-side {
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 8mm;
+    padding: 6mm;
+    box-shadow:
+      0 0 0 2mm rgba(252,238,33,0.95),
+      0 0 0 4mm rgba(144,35,145,0.4),
+      0 10mm 18mm -8mm rgba(30,6,32,0.6);
+  }
+  .qr-side img {
+    display: block;
+    width: 62mm;
+    height: 62mm;
+  }
+
+  .text-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    max-width: 92mm;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+  }
+  .brand-row img {
+    width: 16mm;
+    height: 16mm;
+    object-fit: contain;
+    border-radius: 4mm;
+    background: #fff;
+    box-shadow: 0 0 0 1.2mm #fcee21;
+  }
+  .brand-row .name {
+    font-size: 16pt;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+  .brand-row .tag {
+    font-size: 9.5pt;
+    font-style: italic;
+    color: #fcee21;
+  }
+
+  .headline-si {
+    margin-top: 7mm;
+    font-size: 17pt;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .headline-en {
+    margin-top: 2mm;
+    font-size: 12.5pt;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fcee21;
+  }
+
+  .hint {
+    margin-top: 5mm;
+    font-size: 10pt;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.5;
+  }
+
+  .stars {
+    margin-top: 5mm;
+    font-size: 15pt;
+    letter-spacing: 0.2em;
+    color: #fcc419;
+    text-shadow: 0 1mm 3mm rgba(30,6,32,0.5);
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <!-- Top panel (upside down — becomes the back side after folding) -->
+    <div class="panel top">
+      <div class="qr-side"><img src="qr-code.png" alt="Feedback QR code" /></div>
+      <div class="text-side">
+        <div class="brand-row">
+          <img src="logo.jpg" alt="Peoples Bakers logo" />
+          <div>
+            <div class="name">PEOPLES BAKERS</div>
+            <div class="tag">හිත ඉල්ලන රස</div>
+          </div>
+        </div>
+        <div class="headline-si">ඔබේ අදහස අපට වටිනවා!</div>
+        <div class="headline-en">Scan for feedback</div>
+        <div class="hint">Phone camera එකෙන් QR කේතය scan කර ඔබේ ප්‍රතිචාරය තත්පර කිහිපයකින් එවන්න.</div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+
+    <div class="fold-hint">Fold here · මෙතනින් නමන්න</div>
+    <div class="fold-line"></div>
+
+    <!-- Bottom panel (front side) -->
+    <div class="panel bottom">
+      <div class="qr-side"><img src="qr-code.png" alt="Feedback QR code" /></div>
+      <div class="text-side">
+        <div class="brand-row">
+          <img src="logo.jpg" alt="Peoples Bakers logo" />
+          <div>
+            <div class="name">PEOPLES BAKERS</div>
+            <div class="tag">හිත ඉල්ලන රස</div>
+          </div>
+        </div>
+        <div class="headline-si">ඔබේ අදහස අපට වටිනවා!</div>
+        <div class="headline-en">Scan for feedback</div>
+        <div class="hint">Phone camera එකෙන් QR කේතය scan කර ඔබේ ප්‍රතිචාරය තත්පර කිහිපයකින් එවන්න.</div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </div>
+</body>
+</html>

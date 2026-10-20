@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8" />
+<title>Peoples Bakers — QR Quick Notes (6 per A4, cut-ready)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  body {
+    font-family: "Nirmala UI", "Iskoola Pota", sans-serif;
+  }
+
+  /* Exact A4 — 2 columns × 3 rows = 6 cards, easy to cut */
+  .sheet {
+    width: 210mm;
+    height: 297mm;
+    display: grid;
+    grid-template-columns: 105mm 105mm;
+    grid-template-rows: 99mm 99mm 99mm;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .card {
+    width: 105mm;
+    height: 99mm;
+    padding: 4mm 5mm 3.5mm;
+    color: #3d2a3d;
+    position: relative;
+    overflow: hidden;
+    /* Cut guides — dashed on all sides */
+    outline: 0.25mm dashed #999;
+    outline-offset: -0.25mm;
+  }
+
+  .bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1.5mm;
+    background: linear-gradient(90deg, #fcee21, #902391);
+  }
+
+  .title {
+    font-size: 7.5pt;
+    font-weight: 800;
+    color: #902391;
+    margin-bottom: 0.6mm;
+  }
+
+  .sub {
+    font-size: 5pt;
+    color: #7a5a7a;
+    margin-bottom: 2mm;
+    padding-bottom: 1.2mm;
+    border-bottom: 0.2mm solid #e8d5e8;
+  }
+
+  h3 {
+    font-size: 5.5pt;
+    font-weight: 800;
+    color: #902391;
+    margin: 1.5mm 0 0.6mm;
+  }
+
+  li {
+    font-size: 5pt;
+    line-height: 1.35;
+    margin-bottom: 0.5mm;
+    list-style: none;
+    padding-left: 2.5mm;
+    position: relative;
+  }
+
+  li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #902391;
+  }
+
+  .say {
+    background: #faf5fa;
+    border-radius: 1.5mm;
+    padding: 1.5mm 2mm;
+    margin-top: 1mm;
+    font-size: 4.8pt;
+    line-height: 1.32;
+    color: #4b0f4e;
+  }
+
+  .foot {
+    position: absolute;
+    bottom: 2.5mm;
+    left: 5mm; right: 5mm;
+    font-size: 4pt;
+    color: #aaa;
+    text-align: center;
+  }
+
+  /* Center cut line hint (screen only) */
+  @media screen {
+    body { background: #ddd; padding: 12px; width: auto; height: auto; }
+    .sheet { box-shadow: 0 12px 32px rgba(30,6,32,0.25); }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <!-- 6 cards: cut A4 in half vertically, then 3 horizontal cuts -->
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+  <div class="card"><div class="bar"></div><div class="title">Peoples Bakers</div><div class="sub">QR තැබීම · කෙටි සටහන</div><h3>තැබන්න</h3><ul><li>Cashier counter (බිල ළඟ)</li><li>මේස table tent</li><li>Shop entrance</li></ul><h3>මතක තබාගන්න</h3><ul><li>Eye-level cm 120–150</li><li>ආලෝකමත් තැනක</li></ul><h3>කියන්න</h3><div class="say">QR scan — 10 තත්පර! නම නැතුවත් OK.</div><div class="say">WhatsApp: <strong>076 149 5455</strong></div><div class="foot">Peoples Bakers</div></div>
+</div>
+</body>
+</html>
