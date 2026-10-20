@@ -21,13 +21,17 @@ import {
   Sparkles,
   Star,
   Tag,
+  Trash2,
   TrendingDown,
   TrendingUp,
+  UserPlus,
   Users,
   UtensilsCrossed,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+import DeveloperAuthModal from './DeveloperAuthModal'
 
 const ADMIN_SESSION_KEY = 'is_admin_authenticated'
 
@@ -191,6 +195,15 @@ export default function AdminDashboardClient() {
   const [searchQuery, setSearchQuery] = useState('')
   const [ratingFilter, setRatingFilter] = useState(null)
 
+  const [adminEmails, setAdminEmails] = useState([])
+  const [adminListNote, setAdminListNote] = useState('')
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [newAdminPassword, setNewAdminPassword] = useState('')
+  const [adminFormError, setAdminFormError] = useState('')
+  const [pendingAction, setPendingAction] = useState(null)
+  const [developerError, setDeveloperError] = useState('')
+  const [developerBusy, setDeveloperBusy] = useState(false)
+
   useEffect(() => {
     try {
       if (
@@ -275,6 +288,25 @@ export default function AdminDashboardClient() {
 
         setRows(Array.isArray(json.data) ? json.data : [])
         setLastUpdated(new Date())
+
+        try {
+          const adminRes = await fetch('/api/admin/admins', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: mail, password: pwd }),
+          })
+          const adminJson = await adminRes.json().catch(() => null)
+          if (!cancelled && adminRes.ok && adminJson?.success) {
+            setAdminEmails(Array.isArray(adminJson.emails) ? adminJson.emails : [])
+            setAdminListNote(
+              typeof adminJson.storedError === 'string' && adminJson.storedError
+                ? 'Extra admin accounts are not ready yet. Run supabase/admin_accounts.sql once in the Supabase SQL editor.'
+                : '',
+            )
+          }
+        } catch {
+          /* the feedback table still loaded */
+        }
       } catch (e) {
         if (cancelled) return
         setLoadError(e instanceof Error ? e.message : 'Network error while loading data.')
@@ -412,6 +444,90 @@ export default function AdminDashboardClient() {
     setLoading(false)
     setSearchQuery('')
     setRatingFilter(null)
+    setAdminEmails([])
+    setAdminListNote('')
+    setNewAdminEmail('')
+    setNewAdminPassword('')
+    setAdminFormError('')
+    setPendingAction(null)
+    setDeveloperError('')
+    setDeveloperBusy(false)
+  }
+
+  function requestDelete(id) {
+    setDeveloperError('')
+    setPendingAction({ type: 'delete', id })
+  }
+
+  function requestCreateAdmin(event) {
+    event.preventDefault()
+    setAdminFormError('')
+    const nextEmail = newAdminEmail.trim().toLowerCase()
+    const nextPassword = newAdminPassword.trim()
+    if (!nextEmail.includes('@') || nextPassword.length < 6) {
+      setAdminFormError('Enter a valid email and a password of at least 6 characters.')
+      return
+    }
+    setDeveloperError('')
+    setPendingAction({ type: 'create-admin' })
+  }
+
+  async function confirmDeveloperAction(developerPassword) {
+    const mail = adminEmailRef.current
+    const pwd = adminPasswordRef.current
+    if (!pendingAction || !mail || !pwd) return
+
+    setDeveloperBusy(true)
+    setDeveloperError('')
+
+    try {
+      if (pendingAction.type === 'delete') {
+        const res = await fetch('/api/admin/feedback/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: mail,
+            password: pwd,
+            developerPassword,
+            id: pendingAction.id,
+          }),
+        })
+        const json = await res.json().catch(() => null)
+        if (!res.ok || !json?.success) {
+          setDeveloperError((json && json.error) || 'Could not delete this feedback.')
+          return
+        }
+        setRows((prev) => prev.filter((row) => row.id !== pendingAction.id))
+        setPendingAction(null)
+        return
+      }
+
+      const res = await fetch('/api/admin/admins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: mail,
+          password: pwd,
+          developerPassword,
+          newEmail: newAdminEmail.trim(),
+          newPassword: newAdminPassword.trim(),
+        }),
+      })
+      const json = await res.json().catch(() => null)
+      if (!res.ok || !json?.success) {
+        setDeveloperError((json && json.error) || 'Could not save that admin account.')
+        return
+      }
+      setAdminEmails(Array.isArray(json.emails) ? json.emails : [])
+      setAdminListNote('')
+      setNewAdminEmail('')
+      setNewAdminPassword('')
+      setPendingAction(null)
+    } catch {
+      setDeveloperError('Unable to reach the server. Check your connection and try again.')
+    } finally {
+      setDeveloperBusy(false)
+    }
   }
 
   const purpleBackdrop = (
@@ -894,12 +1010,15 @@ export default function AdminDashboardClient() {
                     <th scope="col" className="whitespace-nowrap px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
                       Date &amp; time
                     </th>
+                    <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                      Delete
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-20 text-center text-stone-500">
+                      <td colSpan={7} className="px-6 py-20 text-center text-stone-500">
                         <span className="inline-flex items-center gap-3 text-base font-semibold">
                           <Loader2 className="h-6 w-6 animate-spin" style={{ color: PURPLE_DEEP }} aria-hidden />
                           Loading feedback…
@@ -909,7 +1028,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-16 text-center">
+                      <td colSpan={7} className="px-6 py-16 text-center">
                         <Inbox className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No feedback yet. Invite customers from the homepage form.
@@ -919,7 +1038,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length > 0 && filteredRows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-16 text-center">
+                      <td colSpan={7} className="px-6 py-16 text-center">
                         <Search className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No results for this search or filter.
@@ -939,7 +1058,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && loadError ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-14 text-center text-sm text-stone-500">
+                      <td colSpan={7} className="px-6 py-14 text-center text-sm text-stone-500">
                         Rows could not be loaded — see the notice above for details.
                       </td>
                     </tr>
@@ -1063,6 +1182,16 @@ export default function AdminDashboardClient() {
                               <p className="text-xs tabular-nums text-stone-500">{timeLine}</p>
                             </div>
                           </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => requestDelete(row.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-100"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden strokeWidth={2.25} />
+                              Delete
+                            </button>
+                          </td>
                         </tr>
                       )
                     })}
@@ -1071,11 +1200,94 @@ export default function AdminDashboardClient() {
             </div>
           </motion.section>
 
+          <motion.section
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mt-8 rounded-3xl border border-white/15 bg-white p-6 shadow-xl sm:p-8"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-900">
+                <UserPlus className="h-5 w-5" aria-hidden strokeWidth={2.25} />
+              </span>
+              <div>
+                <h2 className="text-lg font-black text-purple-950">Admin Account Management</h2>
+                <p className="mt-1 text-sm leading-relaxed text-stone-600">
+                  Add another email and password. Saving asks for the developer password, which is checked on the server.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={requestCreateAdmin} className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <label className="block text-xs font-bold uppercase tracking-widest text-purple-900">
+                Email
+                <input
+                  type="email"
+                  autoComplete="off"
+                  value={newAdminEmail}
+                  onChange={(event) => setNewAdminEmail(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium normal-case tracking-normal text-stone-900 outline-none focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-950/10"
+                />
+              </label>
+              <label className="block text-xs font-bold uppercase tracking-widest text-purple-900">
+                Password
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={newAdminPassword}
+                  onChange={(event) => setNewAdminPassword(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium normal-case tracking-normal text-stone-900 outline-none focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-950/10"
+                />
+              </label>
+              <button
+                type="submit"
+                className="rounded-xl px-5 py-3 text-sm font-bold transition hover:brightness-110"
+                style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
+              >
+                Save admin
+              </button>
+            </form>
+            {adminFormError ? <p className="mt-3 text-sm font-semibold text-red-700">{adminFormError}</p> : null}
+            {adminListNote ? <p className="mt-3 text-sm font-semibold text-amber-800">{adminListNote}</p> : null}
+
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {adminEmails.length === 0 ? (
+                <li className="text-sm italic text-stone-400">Admin emails appear after the dashboard loads.</li>
+              ) : (
+                adminEmails.map((adminEmail) => (
+                  <li
+                    key={adminEmail}
+                    className="rounded-full bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-950"
+                  >
+                    {adminEmail}
+                  </li>
+                ))
+              )}
+            </ul>
+          </motion.section>
+
           <p className="mt-8 text-center text-[11px] font-semibold uppercase tracking-[0.35em] text-white/50">
             Peoples Bakers · Admin
           </p>
         </div>
       </div>
+      <DeveloperAuthModal
+        open={pendingAction !== null}
+        title={pendingAction?.type === 'delete' ? 'Delete feedback' : 'Save admin account'}
+        description={
+          pendingAction?.type === 'delete'
+            ? 'Enter the developer password to permanently delete this feedback.'
+            : 'Enter the developer password to create this admin account.'
+        }
+        busy={developerBusy}
+        error={developerError}
+        onCancel={() => {
+          if (developerBusy) return
+          setPendingAction(null)
+          setDeveloperError('')
+        }}
+        onConfirm={confirmDeveloperAction}
+      />
     </>
   )
 }

@@ -1,21 +1,11 @@
 import { NextResponse } from 'next/server'
 
-import { verifyAdminCredentials } from '@/lib/server/admin-password'
-
-function getSupabaseHost() {
-  const raw =
-    (typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string'
-      ? process.env.NEXT_PUBLIC_SUPABASE_URL.trim()
-      : '') ||
-    (typeof process.env.SUPABASE_URL === 'string' ? process.env.SUPABASE_URL.trim() : '')
-
-  if (!raw) return ''
-
-  return raw.replace(/^https?:\/\//, '').replace(/\/+$/, '')
-}
+import { verifyAnyAdminCredentials } from '@/lib/server/admin-accounts'
+import { isAdminPasswordConfigured } from '@/lib/server/admin-password'
+import { supabaseAdminRest } from '@/lib/server/supabase-admin'
 
 /**
- * POST { email, password } — validates admin credentials, then loads `feedbacks` via Supabase REST.
+ * POST { email, password } — built-in admin or a stored admin account, then loads feedbacks.
  */
 export async function POST(request) {
   let body
@@ -25,63 +15,28 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!verifyAdminCredentials(body?.email, body?.password)) {
+  if (!(await verifyAnyAdminCredentials(body?.email, body?.password))) {
+    if (!isAdminPasswordConfigured()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Authentication is not configured on the server. Set ADMIN_PASSWORD (and optionally ADMIN_EMAIL) then redeploy.',
+        },
+        { status: 503 },
+      )
+    }
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  const host = getSupabaseHost()
-  const serviceKey =
-    typeof process.env.SUPABASE_SERVICE_ROLE_KEY === 'string'
-      ? process.env.SUPABASE_SERVICE_ROLE_KEY.trim()
-      : ''
-
-  if (!host || !serviceKey) {
+  const result = await supabaseAdminRest('feedbacks?select=*&order=created_at.desc')
+  if (!result.ok) {
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          'Server is not configured for admin data. Set NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY.',
-      },
-      { status: 503 },
+      { success: false, error: result.error },
+      { status: result.status >= 500 ? 502 : result.status },
     )
   }
 
-  const supabaseRestUrl = `https://${host}/rest/v1/feedbacks?select=*&order=created_at.desc`
-
-  let res
-  try {
-    res = await fetch(supabaseRestUrl, {
-      method: 'GET',
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Failed to reach Supabase.'
-    return NextResponse.json({ success: false, error: msg }, { status: 502 })
-  }
-
-  let payload = null
-  try {
-    payload = await res.json()
-  } catch {
-    payload = null
-  }
-
-  if (!res.ok) {
-    const message =
-      payload && typeof payload.message === 'string'
-        ? payload.message
-        : payload && typeof payload.error === 'string'
-          ? payload.error
-          : `Supabase request failed (${res.status}).`
-    return NextResponse.json({ success: false, error: message }, { status: res.status >= 500 ? 502 : 500 })
-  }
-
-  const data = Array.isArray(payload) ? payload : []
-
+  const data = Array.isArray(result.data) ? result.data : []
   return NextResponse.json({ success: true, data })
 }
