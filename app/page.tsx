@@ -329,6 +329,7 @@ export default function HomePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const lastSubmitAttemptRef = useRef(0);
+  const ratingSectionRef = useRef<HTMLDivElement>(null);
   const shopSectionRef = useRef<HTMLDivElement>(null);
 
   const draft = useMemo<FeedbackDraft>(
@@ -398,14 +399,22 @@ export default function HomePage() {
       return;
     }
 
+    const ratingMissing = rating === null || rating === 0;
     const shopMissing = shopLocation.trim() === "";
-    if (rating === null) setShowRatingHint(true);
-    else setShowRatingHint(false);
+    if (ratingMissing) {
+      setShowRatingHint(true);
+      if (shopMissing) setShowShopHint(true);
+      else setShowShopHint(false);
+      ratingSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setShowRatingHint(false);
     if (shopMissing) {
       setShowShopHint(true);
       shopSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else setShowShopHint(false);
-    if (rating === null || shopMissing) return;
+      return;
+    }
+    setShowShopHint(false);
 
     const stars = rating;
     setSubmitError(null);
@@ -592,7 +601,7 @@ export default function HomePage() {
                       </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className={sectionCard}>
+                    <motion.div ref={ratingSectionRef} variants={staggerItem} className={sectionCard}>
                       <SectionLabel icon={Star}>තක්සේරුව / Rating</SectionLabel>
                       <InteractiveRatingFace rating={rating} />
                       <StarRating
