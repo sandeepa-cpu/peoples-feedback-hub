@@ -574,15 +574,15 @@ export default function AdminDashboardClient() {
               className="h-2 w-full"
               style={{ background: `linear-gradient(90deg, ${YELLOW_ACC}, ${PURPLE_DEEP}, ${YELLOW_ACC})` }}
             />
-            <div className="p-8 sm:p-10">
+            <div className="p-5 sm:p-10">
               <div className="text-center">
-                <div className="mx-auto flex h-[116px] w-[116px] items-center justify-center overflow-hidden rounded-3xl bg-stone-50 shadow-md ring-4 ring-[#fcee21]/70">
+                <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-stone-50 shadow-md ring-4 ring-[#fcee21]/70 sm:h-[116px] sm:w-[116px]">
                   <Image
                     src="/logo.jpg"
                     alt="Peoples Bakers logo"
                     width={112}
                     height={112}
-                    className="h-[94px] w-[94px] object-contain"
+                    className="h-20 w-20 object-contain sm:h-[94px] sm:w-[94px]"
                     priority
                   />
                 </div>
@@ -723,16 +723,16 @@ export default function AdminDashboardClient() {
   return (
     <>
       {purpleBackdrop}
-      <div className="relative min-h-[100dvh] pb-16">
+      <div className="relative min-h-[100dvh] pb-[max(4rem,env(safe-area-inset-bottom))]">
         {/* —— Top navbar —— */}
         <div className="sticky top-0 z-40 border-b border-white/10 bg-[#7c1f7b]/80 shadow-lg backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-6 lg:px-10">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow ring-2 ring-[#fcee21]/80">
                 <Image src="/logo.jpg" alt="Peoples Bakers logo" width={40} height={40} className="h-9 w-9 object-contain" priority />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-black uppercase tracking-[0.18em] text-white sm:text-base">
+                <p className="truncate text-sm font-black uppercase tracking-[0.12em] text-white sm:text-base sm:tracking-[0.18em]">
                   Peoples Bakers
                 </p>
                 <p className="truncate text-[11px] font-semibold uppercase tracking-widest text-[#fcee21]/90">
@@ -764,13 +764,13 @@ export default function AdminDashboardClient() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-10">
           {/* —— Hero —— */}
           <motion.header
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="relative mt-6 overflow-hidden rounded-3xl border border-white/15 bg-white/10 px-6 py-7 shadow-xl backdrop-blur-md sm:px-10"
+            className="relative mt-6 overflow-hidden rounded-3xl border border-white/15 bg-white/10 px-4 py-5 shadow-xl backdrop-blur-md sm:px-10 sm:py-7"
           >
             <div
               className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full opacity-25 blur-2xl"
@@ -778,7 +778,7 @@ export default function AdminDashboardClient() {
             />
             <div className="relative flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                <h1 className="text-xl font-black tracking-tight text-white sm:text-3xl">
                   Welcome back 👋
                 </h1>
                 <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-white/85">
@@ -813,7 +813,7 @@ export default function AdminDashboardClient() {
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
-                className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-28px_rgba(0,0,0,0.45)]"
+                className="group relative overflow-hidden rounded-3xl bg-white p-4 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-28px_rgba(0,0,0,0.45)] sm:p-6"
               >
                 <div
                   className="pointer-events-none absolute inset-x-0 top-0 h-1 opacity-90"
@@ -824,7 +824,7 @@ export default function AdminDashboardClient() {
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: PURPLE_DEEP }}>
                       {card.label}
                     </p>
-                    <p className="mt-2 text-4xl font-black tabular-nums text-stone-900">{card.value}</p>
+                    <p className="mt-2 text-3xl font-black tabular-nums text-stone-900 sm:text-4xl">{card.value}</p>
                     <p className="mt-2 truncate text-xs text-stone-500">{card.sub}</p>
                     {typeof card.trend === 'number' ? (
                       <p
@@ -858,7 +858,7 @@ export default function AdminDashboardClient() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="relative overflow-hidden rounded-3xl p-6 text-white shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+              className="relative overflow-hidden rounded-3xl p-4 text-white shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 sm:p-6"
               style={{ background: `linear-gradient(150deg, ${PURPLE_DEEP}, #5b1259)` }}
             >
               <div
@@ -866,7 +866,7 @@ export default function AdminDashboardClient() {
                 style={{ background: YELLOW_ACC }}
               />
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#fcee21]">Overall Rating</p>
-              <p className="mt-2 text-4xl font-black tabular-nums">
+              <p className="mt-2 text-3xl font-black tabular-nums sm:text-4xl">
                 {avgRating === null ? '—' : avgRating.toFixed(1)}
                 {avgRating !== null ? <span className="ml-1.5 text-lg font-semibold text-white/70">/ 5</span> : null}
               </p>
@@ -883,7 +883,7 @@ export default function AdminDashboardClient() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="mt-6 rounded-3xl bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] sm:p-8"
+            className="mt-6 rounded-3xl bg-white p-4 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.04] sm:p-8"
           >
             <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
@@ -900,7 +900,7 @@ export default function AdminDashboardClient() {
                     type="button"
                     onClick={() => setRatingFilter(ratingFilter === star ? null : star)}
                     title={`Filter table to ${star}-star reviews`}
-                    className={`group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-purple-500/[0.05] ${
+                    className={`group flex w-full items-center gap-2 rounded-xl px-1 py-1.5 text-left transition hover:bg-purple-500/[0.05] sm:gap-3 sm:px-2 ${
                       ratingFilter === star ? 'bg-purple-500/[0.08] ring-1 ring-purple-300' : ''
                     }`}
                   >
@@ -924,7 +924,7 @@ export default function AdminDashboardClient() {
                         }}
                       />
                     </span>
-                    <span className="w-16 shrink-0 text-right text-xs font-semibold tabular-nums text-stone-500">
+                    <span className="w-14 shrink-0 text-right text-[11px] font-semibold tabular-nums text-stone-500 sm:w-16 sm:text-xs">
                       {count} · {pct}%
                     </span>
                   </button>
@@ -951,12 +951,12 @@ export default function AdminDashboardClient() {
             animate="visible"
             className="mt-6 overflow-hidden rounded-3xl bg-white shadow-[0_28px_60px_-32px_rgba(0,0,0,0.45)] ring-1 ring-black/[0.05]"
           >
-            <div className="flex flex-col gap-4 border-b border-stone-100 bg-gradient-to-r from-purple-950/[0.04] via-white to-amber-50/40 px-6 py-5">
+            <div className="flex flex-col gap-4 border-b border-stone-100 bg-gradient-to-r from-purple-950/[0.04] via-white to-amber-50/40 px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <MessageSquareQuote className="h-5 w-5 shrink-0" aria-hidden strokeWidth={2} style={{ color: PURPLE_DEEP }} />
-                    <h2 className="text-lg font-black tracking-wide text-purple-950">Recent Feedback Entries</h2>
+                    <h2 className="text-base font-black tracking-wide text-purple-950 sm:text-lg">Recent Feedback Entries</h2>
                   </div>
                   <p className="mt-1 text-xs font-medium uppercase tracking-widest text-stone-500">
                     {filteredRows.length} of {rows.length} shown · Newest first
@@ -964,7 +964,7 @@ export default function AdminDashboardClient() {
                 </div>
                 <Link
                   href="/"
-                  className="inline-flex shrink-0 items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
+                  className="inline-flex w-full shrink-0 items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98] sm:w-auto"
                   style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
                 >
                   Open public form →
@@ -988,29 +988,29 @@ export default function AdminDashboardClient() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[64rem] text-left">
+            <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+              <table className="w-full min-w-[52rem] text-left">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-50/90">
-                    <th scope="col" className="min-w-[11rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="min-w-[11rem] px-3 py-3 text-[11px] font-bold uppercase tracking-[0.16em] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Customer
                     </th>
-                    <th scope="col" className="min-w-[8.5rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="min-w-[8.5rem] px-3 py-3 text-[11px] font-bold uppercase tracking-[0.16em] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Shop
                     </th>
-                    <th scope="col" className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="px-3 py-3 text-[11px] font-bold uppercase tracking-[0.16em] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Rating
                     </th>
-                    <th scope="col" className="min-w-[7rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="min-w-[7rem] px-3 py-3 text-[11px] font-bold uppercase tracking-[0.16em] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Details
                     </th>
-                    <th scope="col" className="min-w-[14rem] px-6 py-4 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950">
+                    <th scope="col" className="min-w-[12rem] px-3 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-purple-950 sm:px-6 sm:py-4">
                       Comment
                     </th>
-                    <th scope="col" className="whitespace-nowrap px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-bold uppercase tracking-[0.16em] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Date &amp; time
                     </th>
-                    <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: PURPLE_DEEP }}>
+                    <th scope="col" className="sticky right-0 z-20 bg-stone-50 px-3 py-3 text-right text-[11px] font-bold uppercase tracking-[0.16em] shadow-[-8px_0_12px_-10px_rgba(0,0,0,0.35)] sm:px-6 sm:py-4" style={{ color: PURPLE_DEEP }}>
                       Delete
                     </th>
                   </tr>
@@ -1018,7 +1018,7 @@ export default function AdminDashboardClient() {
                 <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-20 text-center text-stone-500">
+                      <td colSpan={7} className="px-3 py-16 text-center text-stone-500 sm:px-6 sm:py-20">
                         <span className="inline-flex items-center gap-3 text-base font-semibold">
                           <Loader2 className="h-6 w-6 animate-spin" style={{ color: PURPLE_DEEP }} aria-hidden />
                           Loading feedback…
@@ -1028,7 +1028,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-16 text-center">
+                      <td colSpan={7} className="px-3 py-12 text-center sm:px-6 sm:py-16">
                         <Inbox className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No feedback yet. Invite customers from the homepage form.
@@ -1038,7 +1038,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && !loadError && rows.length > 0 && filteredRows.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-16 text-center">
+                      <td colSpan={7} className="px-3 py-12 text-center sm:px-6 sm:py-16">
                         <Search className="mx-auto h-10 w-10 text-stone-300" aria-hidden strokeWidth={1.5} />
                         <p className="mt-3 text-sm font-medium text-stone-500">
                           No results for this search or filter.
@@ -1058,7 +1058,7 @@ export default function AdminDashboardClient() {
                   ) : null}
                   {!loading && loadError ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-14 text-center text-sm text-stone-500">
+                      <td colSpan={7} className="px-3 py-12 text-center text-sm text-stone-500 sm:px-6 sm:py-14">
                         Rows could not be loaded — see the notice above for details.
                       </td>
                     </tr>
@@ -1079,7 +1079,7 @@ export default function AdminDashboardClient() {
                       return (
                         <tr key={row.id} className="align-top transition-colors hover:bg-purple-500/[0.04] even:bg-stone-50/40">
                           {/* Customer */}
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 sm:px-6 sm:py-4">
                             <div className="flex items-center gap-3">
                               <span
                                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-black ${avatarPalette(shownName)}`}
@@ -1103,7 +1103,7 @@ export default function AdminDashboardClient() {
                             </div>
                           </td>
                           {/* Shop */}
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 sm:px-6 sm:py-4">
                             {shopText ? (
                               <span className="inline-flex max-w-[9rem] items-start gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-2.5 py-2 text-xs font-bold leading-snug text-violet-950">
                                 <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden strokeWidth={2} />
@@ -1114,7 +1114,7 @@ export default function AdminDashboardClient() {
                             )}
                           </td>
                           {/* Rating */}
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 sm:px-6 sm:py-4">
                             <div className="flex flex-col gap-1.5">
                               <StarRow value={rv} size="sm" />
                               <span
@@ -1125,7 +1125,7 @@ export default function AdminDashboardClient() {
                             </div>
                           </td>
                           {/* Details: category, service, tags */}
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 sm:px-6 sm:py-4">
                             <div className="flex max-w-[13rem] flex-wrap gap-1.5">
                               {categoryText ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-900">
@@ -1160,7 +1160,7 @@ export default function AdminDashboardClient() {
                             </div>
                           </td>
                           {/* Comment */}
-                          <td className="max-w-md px-6 py-4 break-words whitespace-pre-wrap leading-relaxed text-stone-800">
+                          <td className="max-w-md px-3 py-3 break-words whitespace-pre-wrap leading-relaxed text-stone-800 sm:px-6 sm:py-4">
                             {row.message && String(row.message).trim() !== '' ? (
                               row.message
                             ) : (
@@ -1168,7 +1168,7 @@ export default function AdminDashboardClient() {
                             )}
                           </td>
                           {/* Date */}
-                          <td className="whitespace-nowrap px-6 py-4 text-right">
+                          <td className="whitespace-nowrap px-3 py-3 text-right sm:px-6 sm:py-4">
                             <div className="inline-block text-right">
                               {dayLabel ? (
                                 <span
@@ -1182,11 +1182,11 @@ export default function AdminDashboardClient() {
                               <p className="text-xs tabular-nums text-stone-500">{timeLine}</p>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="sticky right-0 z-10 bg-white px-3 py-3 text-right shadow-[-8px_0_12px_-10px_rgba(0,0,0,0.35)] sm:px-6 sm:py-4">
                             <button
                               type="button"
                               onClick={() => requestDelete(row.id)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-100"
+                              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-100"
                             >
                               <Trash2 className="h-3.5 w-3.5" aria-hidden strokeWidth={2.25} />
                               Delete
@@ -1204,14 +1204,14 @@ export default function AdminDashboardClient() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="mt-8 rounded-3xl border border-white/15 bg-white p-6 shadow-xl sm:p-8"
+            className="mt-8 rounded-3xl border border-white/15 bg-white p-4 shadow-xl sm:p-8"
           >
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-900">
                 <UserPlus className="h-5 w-5" aria-hidden strokeWidth={2.25} />
               </span>
               <div>
-                <h2 className="text-lg font-black text-purple-950">Admin Account Management</h2>
+                <h2 className="text-base font-black text-purple-950 sm:text-lg">Admin Account Management</h2>
                 <p className="mt-1 text-sm leading-relaxed text-stone-600">
                   Add another email and password. Saving asks for the developer password, which is checked on the server.
                 </p>
@@ -1241,7 +1241,7 @@ export default function AdminDashboardClient() {
               </label>
               <button
                 type="submit"
-                className="rounded-xl px-5 py-3 text-sm font-bold transition hover:brightness-110"
+                className="w-full rounded-xl px-5 py-3 text-sm font-bold transition hover:brightness-110 sm:w-auto"
                 style={{ backgroundColor: YELLOW_ACC, color: '#2d0830' }}
               >
                 Save admin
@@ -1257,7 +1257,7 @@ export default function AdminDashboardClient() {
                 adminEmails.map((adminEmail) => (
                   <li
                     key={adminEmail}
-                    className="rounded-full bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-950"
+                    className="max-w-full break-all rounded-full bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-950"
                   >
                     {adminEmail}
                   </li>
