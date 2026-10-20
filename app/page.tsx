@@ -28,8 +28,6 @@ import {
 } from "./lib/feedback-options";
 import { ratingEmojiForStars } from "./lib/rating-emoji";
 import { getCooldownRemainingMs, startSubmitCooldown, SUBMIT_DEBOUNCE_MS } from "./lib/submit-guard";
-import { supabase } from "@/lib/supabase";
-import type { FeedbackInsert } from "@/lib/database.types";
 import { WHATSAPP_CHAT_URL, WHATSAPP_PHONE_DISPLAY } from "./lib/whatsapp";
 
 async function launchFullScreenConfetti() {
@@ -427,33 +425,32 @@ export default function HomePage() {
     const serviceTrimmed = serviceType.trim();
     const shopTrimmed = shopLocation.trim();
     const messageTrimmed = message.trim();
-    const tagLabelsSorted =
-      quickTags.length > 0 ? [...quickTags].sort((a, b) => a.localeCompare(b)).join(", ") : null;
-
-    const insertPayload: FeedbackInsert = {
-      rating: stars,
-      message: messageTrimmed,
-      name: nameTrimmed.length > 0 ? nameTrimmed : null,
-      phone_number: phoneTrimmed.length > 0 ? phoneTrimmed : null,
-      item_category: categoryTrimmed.length > 0 ? categoryTrimmed : null,
-      service_type: serviceTrimmed.length > 0 ? serviceTrimmed : null,
-      shop_location: shopTrimmed.length > 0 ? shopTrimmed : null,
-      quick_tags: tagLabelsSorted,
-    };
-
     try {
-      const { error } = await supabase.from("feedbacks").insert(insertPayload);
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: stars,
+          message: messageTrimmed,
+          name: nameTrimmed,
+          phone: phoneTrimmed,
+          itemCategory: categoryTrimmed,
+          serviceType: serviceTrimmed,
+          shopLocation: shopTrimmed,
+          quickTags,
+        }),
+      });
+      const json = (await res.json().catch(() => null)) as { success?: boolean; error?: string } | null;
 
-      if (error) {
-        console.error("[supabase] insert feedback", error);
+      if (!res.ok || !json?.success) {
         setSubmitError(
-          "We could not save your feedback. Check your connection or try WhatsApp.",
+          (json && typeof json.error === "string" && json.error) ||
+            "We could not save your feedback. Check your connection or try WhatsApp.",
         );
         setIsSubmitting(false);
         return;
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setSubmitError(
         "We could not save your feedback. Please try again or message us on WhatsApp.",
       );

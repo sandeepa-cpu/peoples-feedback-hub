@@ -24,10 +24,5 @@ create table if not exists public.feedbacks (
 
 alter table public.feedbacks enable row level security;
 
-create policy "feedbacks_anon_insert" on public.feedbacks
-  for insert to anon
-  with check (true);
-
-create policy "feedbacks_anon_select" on public.feedbacks
-  for select to anon
-  using (true);
+-- No anon policies. The app inserts and reads through the service role.
+-- Existing projects: run supabase/security_hardening.sql once.

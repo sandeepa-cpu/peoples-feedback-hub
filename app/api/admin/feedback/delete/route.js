@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { verifyAnyAdminCredentials } from '@/lib/server/admin-accounts'
 import { verifyDeveloperMasterPassword } from '@/lib/server/admin-password'
+import { clientAddress, hitRateLimit } from '@/lib/server/rate-limit'
 import { supabaseAdminRest } from '@/lib/server/supabase-admin'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -10,6 +11,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
  * POST { email, password, developerPassword, id } — delete one feedback row.
  */
 export async function POST(request) {
+  if (hitRateLimit(`admin-delete:${clientAddress(request)}`, 12, 60_000)) {
+    return NextResponse.json(
+      { success: false, error: 'Too many delete attempts. Wait a minute and try again.' },
+      { status: 429 },
+    )
+  }
+
   let body
   try {
     body = await request.json()

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 
@@ -14,7 +14,17 @@ type ThankYouModalProps = {
 
 export function ThankYouModal({ open, name, onSendAnother }: ThankYouModalProps) {
   const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<number | null>(null);
   const greeting = name.trim() ? `Thanks, ${name.trim()}` : "ස්තුතියි · Thank you";
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current !== null) {
+        window.clearTimeout(copiedTimerRef.current);
+        copiedTimerRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -29,7 +39,11 @@ export function ThankYouModal({ open, name, onSendAnother }: ThankYouModalProps)
     try {
       await navigator.clipboard.writeText(THANK_YOU_COUPON);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
+      if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = window.setTimeout(() => {
+        copiedTimerRef.current = null;
+        setCopied(false);
+      }, 1600);
     } catch {
       setCopied(false);
     }

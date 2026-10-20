@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { createStoredAdmin, listAllAdminEmails, verifyAnyAdminCredentials } from '@/lib/server/admin-accounts'
 import { verifyDeveloperMasterPassword } from '@/lib/server/admin-password'
+import { clientAddress, hitRateLimit } from '@/lib/server/rate-limit'
 
 async function requireAdminAndDeveloper(body) {
   if (!(await verifyAnyAdminCredentials(body?.email, body?.password))) {
@@ -15,6 +16,13 @@ async function requireAdminAndDeveloper(body) {
 
 /** POST { email, password } lists admins. Include developerPassword plus newEmail/newPassword to create one. */
 export async function POST(request) {
+  if (hitRateLimit(`admin-accounts:${clientAddress(request)}`, 12, 60_000)) {
+    return NextResponse.json(
+      { success: false, error: 'Too many admin account attempts. Wait a minute and try again.' },
+      { status: 429 },
+    )
+  }
+
   let body
   try {
     body = await request.json()
