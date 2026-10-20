@@ -325,6 +325,7 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
+  const [showShopHint, setShowShopHint] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const lastSubmitAttemptRef = useRef(0);
@@ -396,11 +397,12 @@ export default function HomePage() {
       return;
     }
 
-    if (rating === null) {
-      setShowRatingHint(true);
-      return;
-    }
-    setShowRatingHint(false);
+    const shopMissing = shopLocation.trim() === "";
+    if (rating === null) setShowRatingHint(true);
+    else setShowRatingHint(false);
+    if (shopMissing) setShowShopHint(true);
+    else setShowShopHint(false);
+    if (rating === null || shopMissing) return;
 
     const stars = rating;
     setSubmitError(null);
@@ -465,6 +467,7 @@ export default function HomePage() {
     setMessage("");
     setSubmitted(false);
     setShowRatingHint(false);
+    setShowShopHint(false);
     setSubmitError(null);
     setIsSubmitting(false);
     clearFeedbackDraft();
@@ -604,8 +607,20 @@ export default function HomePage() {
                     </motion.div>
 
                     <motion.div variants={staggerItem} className={sectionCard}>
-                      <SectionLabel icon={MapPin}>ශාඛාව / Shop location (optional)</SectionLabel>
-                      <ShopLocationPicker value={shopLocation} onChange={setShopLocation} />
+                      <SectionLabel icon={MapPin}>ශාඛාව / Shop location (REQUIRED / අනිවාර්යයි)</SectionLabel>
+                      <ShopLocationPicker
+                        value={shopLocation}
+                        invalid={showShopHint}
+                        onChange={(next) => {
+                          setShopLocation(next);
+                          setShowShopHint(false);
+                        }}
+                      />
+                      {showShopHint ? (
+                        <p className="text-center text-xs font-semibold text-red-600" role="alert">
+                          කරුණාකර ශාඛාව තෝරන්න / Please select a shop location
+                        </p>
+                      ) : null}
                     </motion.div>
 
                     <motion.div variants={staggerItem} className={sectionCard}>
