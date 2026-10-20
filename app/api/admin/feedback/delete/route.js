@@ -5,7 +5,20 @@ import { verifyDeveloperMasterPassword } from '@/lib/server/admin-password'
 import { clientAddress, hitRateLimit } from '@/lib/server/rate-limit'
 import { supabaseAdminRest } from '@/lib/server/supabase-admin'
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const INT_ID_RE = /^[1-9][0-9]{0,18}$/
+
+/** Accept a UUID string or a numeric primary key from JSON. */
+function feedbackIdFromBody(value) {
+  const id =
+    typeof value === 'number' && Number.isSafeInteger(value)
+      ? String(value)
+      : typeof value === 'string'
+        ? value.trim()
+        : ''
+  if (UUID_RE.test(id) || INT_ID_RE.test(id)) return id
+  return ''
+}
 
 /**
  * POST { email, password, developerPassword, id } — delete one feedback row.
@@ -33,8 +46,8 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Incorrect developer password' }, { status: 403 })
   }
 
-  const id = typeof body?.id === 'string' ? body.id.trim() : ''
-  if (!UUID_RE.test(id)) {
+  const id = feedbackIdFromBody(body?.id)
+  if (!id) {
     return NextResponse.json({ success: false, error: 'Invalid feedback id' }, { status: 400 })
   }
 

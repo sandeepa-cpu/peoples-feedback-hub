@@ -455,8 +455,14 @@ export default function AdminDashboardClient() {
   }
 
   function requestDelete(id) {
+    const feedbackId = id == null ? '' : String(id).trim()
+    if (!feedbackId) {
+      setDeveloperError('This feedback row has no id.')
+      setPendingAction(null)
+      return
+    }
     setDeveloperError('')
-    setPendingAction({ type: 'delete', id })
+    setPendingAction({ type: 'delete', id: feedbackId })
   }
 
   function requestCreateAdmin(event) {
@@ -497,7 +503,7 @@ export default function AdminDashboardClient() {
           setDeveloperError((json && json.error) || 'Could not delete this feedback.')
           return
         }
-        setRows((prev) => prev.filter((row) => row.id !== pendingAction.id))
+        setRows((prev) => prev.filter((row) => String(row.id) !== pendingAction.id))
         setPendingAction(null)
         return
       }
